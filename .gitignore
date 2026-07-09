@@ -1,0 +1,41 @@
+## Target directories
+[Db]
+[db]
+bin/
+obj/
+
+## Visual Studio cache and settings
+.vs/
+[Tt]est[Rr]esult*
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## VS Code settings
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/code-workspace
+
+## JetBrains Rider / IntelliJ
+.idea/
+*.sln.iml
+
+## .NET Aspire & Container patterns
+.aspire/
+.containers/
+obj/Docker/
+
+## User-secrets & Local Configurations
+secrets.json
+.env
+.env.*
+appsettings.Development.json
+
+## OS generated files
+.DS_Store
+Thumbs.db
+.fake
