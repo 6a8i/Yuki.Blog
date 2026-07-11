@@ -78,6 +78,7 @@ jobs:
           fi
 
       - name: Check changelog has content under [Unreleased]
+        if: ${{ !startsWith(github.head_ref, 'release/') }}
         run: |
           if grep -q "## \[Unreleased\]" src/changelog.md && \
              awk '/## \[Unreleased\]/{found=1; next} found && /^### (Added|Changed|Removed|Fixed|Deprecated|Security)/{exit 0} found && /^## \[/{exit 1}' src/changelog.md; then
