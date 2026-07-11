@@ -47,7 +47,14 @@ jobs:
         run: dotnet build src/Visma.Yuki.Blog.sln --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test src/Visma.Yuki.Blog.sln --no-build --configuration Release --verbosity normal --logger "github;verbosity=detailed"
+        run: dotnet test src/Visma.Yuki.Blog.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: |
+            **/TestResults/test-results.trx
 
   changelog-check:
     name: Changelog Updated
