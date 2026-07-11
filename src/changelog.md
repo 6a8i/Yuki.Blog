@@ -1,7 +1,9 @@
 # Changelog
 
-## [Unreleased] - 2026-07-11
+## [Unreleased]
+<!-- Adicione novas features aqui antes de irem para desenvolvimento -->
 
+## [v1.0.0] - 2026-07-11
 ### Added
 
 - **Camada de Domain:**
