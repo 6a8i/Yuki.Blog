@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS authors (
+    id UUID PRIMARY KEY,
+    uniqueNameIdentifier VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(150) NOT NULL,
+    surname VARCHAR(150) NOT NULL
+);
