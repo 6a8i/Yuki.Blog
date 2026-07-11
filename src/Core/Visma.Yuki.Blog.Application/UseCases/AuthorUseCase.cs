@@ -1,5 +1,5 @@
 using FluentResults;
-using Visma.Yuki.Blog.Application.Ports;
+using Visma.Yuki.Blog.Application.Ports.Driving;
 using Visma.Yuki.Blog.Domain.Entities;
 
 namespace Visma.Yuki.Blog.Application.UseCases;

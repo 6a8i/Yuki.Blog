@@ -3,7 +3,7 @@ using FluentResults;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Visma.Yuki.Blog.Application.Ports;
+using Visma.Yuki.Blog.Application.Ports.Driving;
 using Visma.Yuki.Blog.Domain.Entities;
 
 namespace Visma.Yuki.Blog.Api.Endpoints.V1;

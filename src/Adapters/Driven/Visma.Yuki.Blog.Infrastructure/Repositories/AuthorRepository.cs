@@ -1,11 +1,11 @@
-using Visma.Yuki.Blog.Domain.Ports.Repositories;
 using Visma.Yuki.Blog.Domain.Entities;
+using Visma.Yuki.Blog.Application.Ports.Driven;
 
 namespace Visma.Yuki.Blog.Infrastructure.Repositories;
 
 public class AuthorRepository : IAuthorPorts
 {
-    public Task SaveAsync(Author Author, CancellationToken cancellationToken = default)
+    public Task AddAsync(Author Author, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

@@ -1,7 +1,7 @@
 using FluentResults;
 using Visma.Yuki.Blog.Domain.Entities;
 
-namespace Visma.Yuki.Blog.Application.Ports;
+namespace Visma.Yuki.Blog.Application.Ports.Driving;
 
 public interface IAuthorUseCase
 {

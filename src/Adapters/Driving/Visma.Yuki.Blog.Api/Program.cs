@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 builder.Services.AddApiVersioning(options => options.ApiVersionReader = new UrlSegmentApiVersionReader());
+builder.AddDatabaseDependencies();
 builder.Services.AddSharedServices();
 builder.Services.AddCarter();
 
