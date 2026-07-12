@@ -76,4 +76,23 @@ public class PostUseCase(
             return Result.Fail<Guid>($"An error occurred while saving the author to the database.");
         }
     }
+
+    public async Task<Result<IEnumerable<Post>>> GetAllAsync(bool includeAuthor, CancellationToken cancellationToken)
+    {
+        await _uow.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            IEnumerable<Post> posts = await _postPorts.GetAllAsync(includeAuthor, cancellationToken);
+
+            await _uow.CommitAsync(cancellationToken);
+            
+            return Result.Ok(posts);
+        }
+        catch(Exception ex)
+        {
+            await _uow.RollbackAsync(cancellationToken);
+            return Result.Fail<IEnumerable<Post>>($"Failed to retrieve posts. => {ex}");
+        }
+    }
 }
