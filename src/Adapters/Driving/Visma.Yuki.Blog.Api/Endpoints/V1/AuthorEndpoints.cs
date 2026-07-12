@@ -7,6 +7,7 @@ using Visma.Yuki.Blog.Api.Endpoints.V1.Requests;
 using Visma.Yuki.Blog.Api.Endpoints.V1.Responses;
 using Visma.Yuki.Blog.Application.Commands.Author;
 using Visma.Yuki.Blog.Application.Ports.Driving;
+using Visma.Yuki.Blog.Application.Queries.Author;
 using Visma.Yuki.Blog.Domain.Entities;
 
 namespace Visma.Yuki.Blog.Api.Endpoints.V1;
@@ -21,9 +22,9 @@ public class AuthorEndpoints : ICarterModule
                               .HasApiVersion(1.0)
                               .WithTags("Authors");
 
-        group.MapGet("/", async ([FromServices] IAuthorUseCase authorUseCase, CancellationToken cancellationToken = default) =>
+        group.MapGet("/", async ([FromServices] IAuthorQueryHandler authorQueryHandler, CancellationToken cancellationToken = default) =>
         {
-            Result<IEnumerable<Author>> result = await authorUseCase.GetAuthorsAsync(cancellationToken);
+            Result<IEnumerable<Author>> result = await authorQueryHandler.HandleAsync(new GetAllAuthorsQuery(), cancellationToken);
             
             if (result.IsFailed)
             {
@@ -36,9 +37,9 @@ public class AuthorEndpoints : ICarterModule
                 return Results.Ok(result.Value.Select(a => new AuthorResponse(a.Id, a.Name, a.Surname)));
         }).Produces<IEnumerable<AuthorResponse>>();
 
-        group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IAuthorUseCase authorUseCase, CancellationToken cancellationToken = default) =>
+        group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IAuthorQueryHandler authorQueryHandler, CancellationToken cancellationToken = default) =>
         {
-            Result<Author?> result = await authorUseCase.GetAuthorAsync(id, cancellationToken);
+            Result<Author?> result = await authorQueryHandler.HandleAsync(new GetAuthorByIdQuery(id), cancellationToken);
 
             if (result.IsFailed)
             {
@@ -52,10 +53,10 @@ public class AuthorEndpoints : ICarterModule
         }).Produces<AuthorResponse>();
 
         group.MapPost("/",async ([FromBody] AuthorRequest request, 
-                                [FromServices] IAuthorUseCase authorUseCase, 
+                                [FromServices] IAuthorCommandHandler authorCommandHandler, 
                                 CancellationToken cancellationToken = default) => 
         {
-            Result<Author> result = await authorUseCase.CreateAuthorAsync((CreateAuthorCommand) request, cancellationToken);
+            Result<Author> result = await authorCommandHandler.HandleAsync((CreateAuthorCommand) request, cancellationToken);
 
             if (result.IsFailed)
             {

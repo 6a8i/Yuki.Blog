@@ -40,7 +40,8 @@ public static class DependencyInjectionExtensions
     {
         services.AddValidatorsFromAssemblyContaining<CreateAuthorCommandValidator>();
         
-        services.AddScoped<IAuthorUseCase, AuthorUseCase>();
+        services.AddScoped<IAuthorCommandHandler, AuthorCommandHandler>();
+        services.AddScoped<IAuthorQueryHandler, AuthorQueryHandler>();
         services.AddScoped<IPostUseCase, PostUseCase>();
     }
 
