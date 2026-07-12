@@ -18,4 +18,8 @@
     <ProjectReference Include="..\..\..\Core\Visma.Yuki.Blog.Application\Visma.Yuki.Blog.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Visma.Yuki.Blog.Tests.Integration" />
+  </ItemGroup>
+
 </Project>
