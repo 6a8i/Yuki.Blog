@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 <!-- Add new features here before they go to development -->
+
+## [v1.1.0] - 2026-07-12
 ### Added
 
 - Authors can now be created via the API (`POST /api/v1/authors/`), with validation, duplicate detection, and `201 Created` response
