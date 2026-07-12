@@ -8,6 +8,7 @@ using Visma.Yuki.Blog.Application.Ports.Driving;
 using Visma.Yuki.Blog.Application.Ports.Driven;
 using FluentValidation;
 using Visma.Yuki.Blog.Application.Commands.Author;
+using System.Net.Security;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -40,6 +41,7 @@ public static class DependencyInjectionExtensions
         services.AddValidatorsFromAssemblyContaining<CreateAuthorCommandValidator>();
         
         services.AddScoped<IAuthorUseCase, AuthorUseCase>();
+        services.AddScoped<IPostUseCase, PostUseCase>();
     }
 
     private static void AddDrivenPorts<TServiceCollection>(TServiceCollection services)
@@ -47,5 +49,6 @@ public static class DependencyInjectionExtensions
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthorPorts, AuthorRepository>();
+        services.AddScoped<IPostPorts, PostRepository>();
     }
 }
