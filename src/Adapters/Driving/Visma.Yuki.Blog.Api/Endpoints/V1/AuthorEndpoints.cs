@@ -65,6 +65,6 @@ public class AuthorEndpoints : ICarterModule
             AuthorResponse response = (AuthorResponse)result.Value;
 
             return Results.Created($"/api/v1/authors/{response.Id}", response);
-        });
+        }).Produces<AuthorResponse>();
     }
 }
