@@ -25,31 +25,17 @@ public class AuthorEndpoints : ICarterModule
         group.MapGet("/", async ([FromServices] IAuthorQueryHandler authorQueryHandler, CancellationToken cancellationToken = default) =>
         {
             Result<IEnumerable<Author>> result = await authorQueryHandler.HandleAsync(new GetAllAuthorsQuery(), cancellationToken);
-
+            
             if (result.IsFailed)
             {
                 return Results.BadRequest(result.Errors[0].Message);
             }
 
-            var items = result.Value.Select(a =>
-            {
-                var response = (AuthorResponse)a;
-                response.Links = [new Link("self", "GET", $"/api/v1/authors/{response.Id}")];
-                return response;
-            }).ToList();
-
-            var collection = new CollectionResponse<AuthorResponse>
-            {
-                Items = items,
-                Links =
-                [
-                    new Link("self", "GET", "/api/v1/authors/"),
-                    new Link("create", "POST", "/api/v1/authors/")
-                ]
-            };
-
-            return Results.Ok(collection);
-        }).Produces<CollectionResponse<AuthorResponse>>().ProducesProblem(400);
+            if(!result.Value.Any())
+                return Results.NoContent();
+            else
+                return Results.Ok(result.Value.Select(a => new AuthorResponse(a.Id, a.Name, a.Surname)));
+        }).Produces<IEnumerable<AuthorResponse>>();
 
         group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IAuthorQueryHandler authorQueryHandler, CancellationToken cancellationToken = default) =>
         {
@@ -63,19 +49,12 @@ public class AuthorEndpoints : ICarterModule
             if (result.Value is null)
                 return Results.NotFound();
 
-            var response = (AuthorResponse)result.Value;
-            response.Links =
-            [
-                new Link("self", "GET", $"/api/v1/authors/{response.Id}"),
-                new Link("collection", "GET", "/api/v1/authors/")
-            ];
+            return Results.Ok((AuthorResponse)result.Value);
+        }).Produces<AuthorResponse>();
 
-            return Results.Ok(response);
-        }).Produces<AuthorResponse>().ProducesProblem(400).ProducesProblem(404);
-
-        group.MapPost("/",async ([FromBody] AuthorRequest request,
-                                [FromServices] IAuthorCommandHandler authorCommandHandler,
-                                CancellationToken cancellationToken = default) =>
+        group.MapPost("/",async ([FromBody] AuthorRequest request, 
+                                [FromServices] IAuthorCommandHandler authorCommandHandler, 
+                                CancellationToken cancellationToken = default) => 
         {
             Result<Author> result = await authorCommandHandler.HandleAsync((CreateAuthorCommand) request, cancellationToken);
 
@@ -85,13 +64,8 @@ public class AuthorEndpoints : ICarterModule
             }
 
             AuthorResponse response = (AuthorResponse)result.Value;
-            response.Links =
-            [
-                new Link("self", "GET", $"/api/v1/authors/{response.Id}"),
-                new Link("collection", "GET", "/api/v1/authors/")
-            ];
 
             return Results.Created($"/api/v1/authors/{response.Id}", response);
-        }).Produces<AuthorResponse>(201).ProducesProblem(400);
+        }).Produces<AuthorResponse>();
     }
 }

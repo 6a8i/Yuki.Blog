@@ -6,7 +6,6 @@ public class AuthorResponse(Guid id, string name, string surname)
 {
     public Guid Id { get; private set; } = id;
     public string FullName { get; private set; } = $"{name} {surname}";
-    public List<Link> Links { get; set; } = [];
 
     public static explicit operator AuthorResponse(Author value)
     {

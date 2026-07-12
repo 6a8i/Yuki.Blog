@@ -117,6 +117,5 @@ public class CreateAuthorEndpointTests : IClassFixture<IntegrationTestWebAppFact
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    private record AuthorDto(Guid Id, string FullName, List<LinkDto> Links);
-    private record LinkDto(string Rel, string Method, string Href);
+    private record AuthorDto(Guid Id, string FullName);
 }
