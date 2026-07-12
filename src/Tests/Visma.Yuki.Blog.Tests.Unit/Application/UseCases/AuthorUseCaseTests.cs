@@ -91,4 +91,75 @@ public class AuthorUseCaseTests
 
         await _authorPorts.Received(1).GetAllAsync(token);
     }
+
+    [Fact]
+    public async Task GetAuthorAsync_WhenAuthorExists_ShouldReturnSuccessWithAuthor()
+    {
+        var authorId = Guid.NewGuid();
+        var expectedAuthor = new Author(authorId, "John", "Doe");
+
+        _authorPorts.GetByIdAsync(authorId, Arg.Any<CancellationToken>())
+            .Returns(expectedAuthor);
+
+        var result = await _sut.GetAuthorAsync(authorId, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedAuthor, result.Value);
+    }
+
+    [Fact]
+    public async Task GetAuthorAsync_WhenAuthorDoesNotExist_ShouldReturnSuccessWithNull()
+    {
+        var authorId = Guid.NewGuid();
+
+        _authorPorts.GetByIdAsync(authorId, Arg.Any<CancellationToken>())
+            .Returns((Author?)null);
+
+        var result = await _sut.GetAuthorAsync(authorId, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value);
+    }
+
+    [Fact]
+    public async Task GetAuthorAsync_ShouldCallPortsGetByIdAsyncOnce()
+    {
+        var authorId = Guid.NewGuid();
+
+        _authorPorts.GetByIdAsync(authorId, Arg.Any<CancellationToken>())
+            .Returns((Author?)null);
+
+        await _sut.GetAuthorAsync(authorId, CancellationToken.None);
+
+        await _authorPorts.Received(1).GetByIdAsync(authorId, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetAuthorAsync_WhenPortsThrowsException_ShouldReturnFailedResult()
+    {
+        var authorId = Guid.NewGuid();
+
+        _authorPorts.GetByIdAsync(authorId, Arg.Any<CancellationToken>())
+            .Returns<Task<Author?>>(_ => throw new InvalidOperationException("Database unavailable"));
+
+        var result = await _sut.GetAuthorAsync(authorId, CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains("Database unavailable", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task GetAuthorAsync_WithCancellationToken_ShouldPassTokenToPorts()
+    {
+        var authorId = Guid.NewGuid();
+        var cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        _authorPorts.GetByIdAsync(authorId, token)
+            .Returns((Author?)null);
+
+        await _sut.GetAuthorAsync(authorId, token);
+
+        await _authorPorts.Received(1).GetByIdAsync(authorId, token);
+    }
 }

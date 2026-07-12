@@ -14,6 +14,20 @@ public class AuthorUseCase(IAuthorPorts authorPorts) : IAuthorUseCase
         throw new NotImplementedException();
     }
 
+    public async Task<Result<Author?>> GetAuthorAsync(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            Author? author = await _authorPorts.GetByIdAsync(id, cancellationToken);
+            
+            return Result.Ok(author);
+        }
+        catch(Exception ex)
+        {
+            return Result.Fail(ex.Message);
+        }
+    }
+
     public async Task<Result<IEnumerable<Author>>> GetAuthorsAsync(CancellationToken cancellationToken = default)
     {
         IEnumerable<Author> authors = await _authorPorts.GetAllAsync(cancellationToken);

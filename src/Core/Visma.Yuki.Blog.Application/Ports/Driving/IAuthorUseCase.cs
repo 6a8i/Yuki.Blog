@@ -7,4 +7,5 @@ public interface IAuthorUseCase
 {
     Task<Result<Author>> CreateAuthorAsync(string Name, string Surname, CancellationToken cancellationToken = default);
     Task<Result<IEnumerable<Author>>> GetAuthorsAsync(CancellationToken cancellationToken = default);
+    Task<Result<Author?>> GetAuthorAsync(Guid id, CancellationToken cancellationToken);
 }

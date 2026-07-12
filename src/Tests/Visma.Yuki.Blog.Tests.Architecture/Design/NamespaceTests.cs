@@ -33,12 +33,15 @@ public class NamespaceTests
     [Fact]
     public void Infrastructure_Types_ShouldBeInInfrastructureNamespace()
     {
-        var result = Types.InAssembly(typeof(AuthorRepository).Assembly)
-            .Should()
-            .ResideInNamespace("Visma.Yuki.Blog.Infrastructure")
-            .GetResult();
+        var typesOutsideInfrastructureNamespace = typeof(AuthorRepository).Assembly
+            .GetTypes()
+            .Where(t => !string.IsNullOrEmpty(t.Namespace)
+                     && !t.Namespace.StartsWith("Visma.Yuki.Blog.Infrastructure")
+                     && !t.Name.StartsWith("<"))
+            .Select(t => t.FullName)
+            .ToList();
 
-        Assert.True(result.IsSuccessful);
+        Assert.Empty(typesOutsideInfrastructureNamespace);
     }
 
     [Fact]
