@@ -7,6 +7,11 @@
 
 - HATEOAS links on all Author endpoints: `GET /authors/` (collection with `self` and `create` links), `GET /authors/{id}` (with `self` and `collection` links), and `POST /authors/` (with `self` and `collection` links). Collection responses now wrapped in `CollectionResponse<T>` with `items` and `links` fields.
 
+### Changed
+
+- `GET /authors/` now returns `200 OK` with empty collection instead of `204 No Content` when no authors exist
+- Added `ProducesProblem` declarations to Author endpoints for OpenAPI documentation (`400` on all, `404` on `GET /{id}`)
+
 
 ## [v1.2.2] - 2026-07-12
 ### Changed
