@@ -6,6 +6,8 @@ using Npgsql;
 using System.Data;
 using Visma.Yuki.Blog.Application.Ports.Driving;
 using Visma.Yuki.Blog.Application.Ports.Driven;
+using FluentValidation;
+using Visma.Yuki.Blog.Application.Commands.Author;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -35,6 +37,8 @@ public static class DependencyInjectionExtensions
     private static void AddUseCases<TServiceCollection>(TServiceCollection services)
         where TServiceCollection : IServiceCollection
     {
+        services.AddValidatorsFromAssemblyContaining<CreateAuthorCommandValidator>();
+        
         services.AddScoped<IAuthorUseCase, AuthorUseCase>();
     }
 

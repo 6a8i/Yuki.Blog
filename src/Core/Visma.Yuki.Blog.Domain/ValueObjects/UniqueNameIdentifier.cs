@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Visma.Yuki.Blog.Domain.ValueObjects;
 
@@ -18,7 +19,7 @@ public partial class UniqueNameIdentifier
         {
             throw new ArgumentException("Stored identifier cannot be null or empty.");
         }
-        
+
         return new(uniqueNameIdentifier);
     }
 
@@ -27,6 +28,11 @@ public partial class UniqueNameIdentifier
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(surname))
         {
             throw new ArgumentException("Name and Surname are required to generate the identifier.");
+        }
+
+        if (NameRegex().IsMatch(name.Trim()) || NameRegex().IsMatch(surname.Trim()))
+        {
+            throw new ArgumentException("Author names cannot consist solely of numbers.");
         }
 
         string rawInput = $"{name.Trim().ToLower()}_{surname.Trim().ToLower()}";
@@ -52,4 +58,7 @@ public partial class UniqueNameIdentifier
     public override bool Equals(object? obj) => obj is UniqueNameIdentifier other && Value == other.Value;
     public override int GetHashCode() => Value.GetHashCode();
     public override string ToString() => Value;
+   
+    [GeneratedRegex(@"^\d+$")]
+    private static partial Regex NameRegex();
 }

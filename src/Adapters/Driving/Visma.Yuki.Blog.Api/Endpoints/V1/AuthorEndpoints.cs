@@ -3,7 +3,9 @@ using FluentResults;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Visma.Yuki.Blog.Api.Endpoints.V1.Requests;
 using Visma.Yuki.Blog.Api.Endpoints.V1.Responses;
+using Visma.Yuki.Blog.Application.Commands.Author;
 using Visma.Yuki.Blog.Application.Ports.Driving;
 using Visma.Yuki.Blog.Domain.Entities;
 
@@ -49,9 +51,20 @@ public class AuthorEndpoints : ICarterModule
             return Results.Ok((AuthorResponse)result.Value);
         }).Produces<AuthorResponse>();
 
-        group.MapPost("/", ([FromServices] IAuthorUseCase authorUseCase) => {
-            
-            return TypedResults.Json("Author created", statusCode: StatusCodes.Status201Created, contentType: "application/json");
+        group.MapPost("/",async ([FromBody] AuthorRequest request, 
+                                [FromServices] IAuthorUseCase authorUseCase, 
+                                CancellationToken cancellationToken = default) => 
+        {
+            Result<Author> result = await authorUseCase.CreateAuthorAsync((CreateAuthorCommand) request, cancellationToken);
+
+            if (result.IsFailed)
+            {
+                return Results.BadRequest(result.Errors);
+            }
+
+            AuthorResponse response = (AuthorResponse)result.Value;
+
+            return Results.Created($"/api/v1/authors/{response.Id}", response);
         });
     }
 }

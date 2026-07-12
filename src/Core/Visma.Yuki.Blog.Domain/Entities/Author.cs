@@ -15,7 +15,6 @@ public class Author
         Id = id;
         Name = name;
         Surname = surname;
-        // O próprio domínio gera o identificador único na criação
         UniqueNameIdentifier = UniqueNameIdentifier.Create(name, surname);
     }
 
