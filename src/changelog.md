@@ -4,11 +4,12 @@
 <!-- Add new features here before they go to development -->
 ### Added
 
+- Authors can now be created via the API (`POST /api/v1/authors/`), with validation, duplicate detection, and `201 Created` response
 - Authors can now be retrieved via the API (`GET /api/v1/authors/`), returning all registered authors or an empty response when none exist
 - A single author can now be retrieved by ID (`GET /api/v1/authors/{id}`), returning the author data or `404 Not Found` when not found
 - Each author is uniquely identified by a generated hash based on their name and surname, ensuring deduplication
 - Architecture documentation added covering the project's structure, patterns, and tech stack
-- Automated test coverage for the author retrieval flow, including unit and integration tests with a real database
+- Automated test coverage for author creation and retrieval flows, including unit and integration tests with a real database
 
 ### Changed
 
