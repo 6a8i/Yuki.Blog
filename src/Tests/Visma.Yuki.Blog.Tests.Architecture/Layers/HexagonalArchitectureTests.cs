@@ -4,6 +4,7 @@ using Visma.Yuki.Blog.Application.Ports.Driven;
 using Visma.Yuki.Blog.Application.UseCases;
 using Visma.Yuki.Blog.Infrastructure.Repositories;
 using Visma.Yuki.Blog.Api.Endpoints.V1;
+using Visma.Yuki.Blog.Domain.Entities;
 
 namespace Visma.Yuki.Blog.Tests.Architecture.Layers;
 
@@ -12,7 +13,7 @@ public class HexagonalArchitectureTests
     [Fact]
     public void DrivingPorts_ShouldBeInterfaces_InApplicationLayer()
     {
-        var result = Types.InAssembly(typeof(IAuthorUseCase).Assembly)
+        var result = Types.InAssembly(typeof(IAuthorCommandHandler).Assembly)
             .That()
             .ResideInNamespace("Visma.Yuki.Blog.Application.Ports.Driving")
             .Should()
@@ -38,9 +39,9 @@ public class HexagonalArchitectureTests
     [Fact]
     public void UseCases_ShouldImplementDrivingPorts()
     {
-        var drivingPortInterfaces = new[] { typeof(IAuthorUseCase), typeof(IPostUseCase) };
+        var drivingPortInterfaces = new[] { typeof(IAuthorCommandHandler), typeof(IAuthorQueryHandler), typeof(IPostUseCase) };
 
-        var useCaseTypes = Types.InAssembly(typeof(AuthorUseCase).Assembly)
+        var useCaseTypes = Types.InAssembly(typeof(AuthorCommandHandler).Assembly)
             .That()
             .ResideInNamespace("Visma.Yuki.Blog.Application.UseCases")
             .GetTypes();
@@ -96,7 +97,7 @@ public class HexagonalArchitectureTests
                 .Concat(type.GetFields().Select(f => f.FieldType))
                 .Distinct();
 
-            var concreteUseCaseTypes = new[] { typeof(AuthorUseCase), typeof(PostUseCase) };
+            var concreteUseCaseTypes = new[] { typeof(AuthorCommandHandler), typeof(AuthorQueryHandler), typeof(PostUseCase) };
 
             var dependsOnConcreteUseCase = usedTypes
                 .Any(t => concreteUseCaseTypes.Contains(t));
