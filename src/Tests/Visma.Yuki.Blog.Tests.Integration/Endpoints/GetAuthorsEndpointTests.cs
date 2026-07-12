@@ -24,15 +24,16 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
         var response = await _client.GetAsync("/api/v1/authors/");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var authors = await response.Content.ReadFromJsonAsync<List<AuthorDto>>();
-        Assert.NotNull(authors);
-        Assert.Equal(2, authors.Count);
-        Assert.Contains(authors, a => a.FullName == "John Doe");
-        Assert.Contains(authors, a => a.FullName == "Jane Smith");
+        var collection = await response.Content.ReadFromJsonAsync<AuthorCollectionDto>();
+        Assert.NotNull(collection);
+        Assert.Equal(2, collection.Items.Count);
+        Assert.Contains(collection.Items, a => a.FullName == "John Doe");
+        Assert.Contains(collection.Items, a => a.FullName == "Jane Smith");
+        Assert.NotEmpty(collection.Links);
     }
 
     [Fact]
-    public async Task GetAuthors_WhenTableIsEmpty_ShouldReturn204NoContent()
+    public async Task GetAuthors_WhenTableIsEmpty_ShouldReturn200WithEmptyCollection()
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
@@ -42,7 +43,11 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
 
         var response = await _client.GetAsync("/api/v1/authors/");
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var collection = await response.Content.ReadFromJsonAsync<AuthorCollectionDto>();
+        Assert.NotNull(collection);
+        Assert.Empty(collection.Items);
+        Assert.NotEmpty(collection.Links);
     }
 
     [Fact]
@@ -71,9 +76,9 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
         var response = await _client.GetAsync("/api/v1/authors/");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var authors = await response.Content.ReadFromJsonAsync<List<AuthorDto>>();
-        Assert.NotNull(authors);
-        Assert.True(authors.Count >= 5);
+        var collection = await response.Content.ReadFromJsonAsync<AuthorCollectionDto>();
+        Assert.NotNull(collection);
+        Assert.True(collection.Items.Count >= 5);
     }
 
     public async Task InitializeAsync()
@@ -95,5 +100,7 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    private record AuthorDto(Guid Id, string FullName);
+    private record AuthorDto(Guid Id, string FullName, List<LinkDto> Links);
+    private record LinkDto(string Rel, string Method, string Href);
+    private record AuthorCollectionDto(List<AuthorDto> Items, List<LinkDto> Links);
 }
