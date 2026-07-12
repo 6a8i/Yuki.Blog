@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 <!-- Add new features here before they go to development -->
+### Added
+
+- Project README with full setup instructions for Windows and Linux, including prerequisites, .NET HTTPS certificate trust, and how to run the application and tests
 
 ## [v1.2.0] - 2026-07-12
 ### Added
