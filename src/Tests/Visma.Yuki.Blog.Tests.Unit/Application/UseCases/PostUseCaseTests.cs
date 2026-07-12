@@ -229,4 +229,108 @@ public class PostUseCaseTests
         await _authorPorts.DidNotReceive().AddAsync(Arg.Any<Author>(), Arg.Any<CancellationToken>());
         await _postPorts.Received(1).AddAsync(Arg.Is<Post>(p => p.Author.Id == existingAuthor.Id), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task GetAllAsync_WhenPostsExist_ShouldReturnSuccessWithPosts()
+    {
+        var author = new Author(Guid.NewGuid(), "John", "Doe");
+        var posts = new List<Post>
+        {
+            new(Guid.NewGuid(), "Post 1", "Desc 1", "Content 1", author),
+            new(Guid.NewGuid(), "Post 2", "Desc 2", "Content 2", author)
+        };
+
+        _postPorts.GetAllAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(posts);
+
+        var result = await _sut.GetAllAsync(false, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value.Count());
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WhenNoPostsExist_ShouldReturnSuccessWithEmptyCollection()
+    {
+        _postPorts.GetAllAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Post>());
+
+        var result = await _sut.GetAllAsync(false, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldCallPostPortsGetAllAsync()
+    {
+        _postPorts.GetAllAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Post>());
+
+        await _sut.GetAllAsync(false, CancellationToken.None);
+
+        await _postPorts.Received(1).GetAllAsync(false, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithIncludeAuthorTrue_ShouldPassIncludeAuthorToPorts()
+    {
+        _postPorts.GetAllAsync(true, Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Post>());
+
+        await _sut.GetAllAsync(true, CancellationToken.None);
+
+        await _postPorts.Received(1).GetAllAsync(true, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithIncludeAuthorFalse_ShouldPassIncludeAuthorToPorts()
+    {
+        _postPorts.GetAllAsync(false, Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Post>());
+
+        await _sut.GetAllAsync(false, CancellationToken.None);
+
+        await _postPorts.Received(1).GetAllAsync(false, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldBeginTransactionAndCommit()
+    {
+        _postPorts.GetAllAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<Post>());
+
+        await _sut.GetAllAsync(false, CancellationToken.None);
+
+        await _uow.Received(1).BeginTransactionAsync(Arg.Any<CancellationToken>());
+        await _uow.Received(1).CommitAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WhenPortsThrowsException_ShouldRollbackAndReturnFailure()
+    {
+        _postPorts.GetAllAsync(Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns<IEnumerable<Post>>(_ => throw new InvalidOperationException("Database error"));
+
+        var result = await _sut.GetAllAsync(false, CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        await _uow.Received(1).RollbackAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetAllAsync_WithCancellationToken_ShouldPassTokenToPorts()
+    {
+        var cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        _postPorts.GetAllAsync(Arg.Any<bool>(), token)
+            .Returns(Array.Empty<Post>());
+
+        await _sut.GetAllAsync(false, token);
+
+        await _uow.Received(1).BeginTransactionAsync(token);
+        await _postPorts.Received(1).GetAllAsync(Arg.Any<bool>(), token);
+        await _uow.Received(1).CommitAsync(token);
+    }
 }

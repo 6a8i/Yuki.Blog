@@ -9,7 +9,9 @@ public class Post
 
     public string Content { get; private set; }
 
-    public Author Author { get; private set; }
+    public Guid AuthorId { get; set; }
+
+    public Author? Author { get; private set; }
 
     public Post(Guid id, string title, string? description, string content, Author author)
     {
@@ -17,6 +19,17 @@ public class Post
         Title = title;
         Description = description;
         Content = content;
+        Author = author ?? throw new ArgumentNullException(nameof(author));
+        AuthorId = author.Id;
+    }
+
+    public Post(Guid id, string title, string? description, string content, Guid authorId, Author author)
+    {
+        Id = id;
+        Title = title;
+        Description = description;
+        Content = content;
+        AuthorId = authorId;
         Author = author;
     }
 }
