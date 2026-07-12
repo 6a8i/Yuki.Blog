@@ -49,6 +49,16 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
                 name VARCHAR(150) NOT NULL,
                 surname VARCHAR(150) NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS posts (
+                id UUID PRIMARY KEY,
+                title VARCHAR(200) NOT NULL,
+                description VARCHAR(300) NULL,
+                content TEXT NOT NULL,
+                createdAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                authorId UUID NOT NULL REFERENCES authors(id) ON DELETE SET NULL
+            );
             """;
         await cmd.ExecuteNonQueryAsync();
     }

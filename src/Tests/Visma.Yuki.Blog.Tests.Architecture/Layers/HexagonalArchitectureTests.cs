@@ -38,14 +38,21 @@ public class HexagonalArchitectureTests
     [Fact]
     public void UseCases_ShouldImplementDrivingPorts()
     {
-        var result = Types.InAssembly(typeof(AuthorUseCase).Assembly)
+        var drivingPortInterfaces = new[] { typeof(IAuthorUseCase), typeof(IPostUseCase) };
+
+        var useCaseTypes = Types.InAssembly(typeof(AuthorUseCase).Assembly)
             .That()
             .ResideInNamespace("Visma.Yuki.Blog.Application.UseCases")
-            .Should()
-            .ImplementInterface(typeof(IAuthorUseCase))
-            .GetResult();
+            .GetTypes();
 
-        Assert.True(result.IsSuccessful);
+        foreach (var useCaseType in useCaseTypes)
+        {
+            var implementsAtLeastOne = drivingPortInterfaces
+                .Any(port => port.IsAssignableFrom(useCaseType));
+
+            Assert.True(implementsAtLeastOne,
+                $"{useCaseType.FullName} does not implement any driving port interface");
+        }
     }
 
     [Fact]
@@ -59,6 +66,7 @@ public class HexagonalArchitectureTests
         var drivenPortTypes = new[]
         {
             typeof(IAuthorPorts),
+            typeof(IPostPorts),
             typeof(IUnitOfWork)
         };
 
@@ -88,11 +96,13 @@ public class HexagonalArchitectureTests
                 .Concat(type.GetFields().Select(f => f.FieldType))
                 .Distinct();
 
+            var concreteUseCaseTypes = new[] { typeof(AuthorUseCase), typeof(PostUseCase) };
+
             var dependsOnConcreteUseCase = usedTypes
-                .Any(t => t == typeof(AuthorUseCase));
+                .Any(t => concreteUseCaseTypes.Contains(t));
 
             Assert.False(dependsOnConcreteUseCase,
-                $"{type.FullName} depends on concrete AuthorUseCase instead of IAuthorUseCase");
+                $"{type.FullName} depends on a concrete UseCase instead of a driving port interface");
         }
     }
 

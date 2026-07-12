@@ -37,7 +37,7 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "TRUNCATE TABLE authors;";
+        cmd.CommandText = "TRUNCATE TABLE posts, authors CASCADE;";
         await cmd.ExecuteNonQueryAsync();
 
         var response = await _client.GetAsync("/api/v1/authors/");
@@ -81,7 +81,7 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "TRUNCATE TABLE authors;";
+        cmd.CommandText = "TRUNCATE TABLE posts, authors CASCADE;";
         await cmd.ExecuteNonQueryAsync();
 
         cmd.CommandText = """
