@@ -3,6 +3,12 @@
 ## [Unreleased]
 <!-- Add new features here before they go to development -->
 
+
+## [v1.2.2] - 2026-07-12
+### Changed
+
+- Post flow refactored to CQRS pattern: `IPostUseCase` split into `IPostCommandHandler` (writes) and `IPostQueryHandler` (reads), with separate query DTOs (`GetAllPostsQuery`, `GetPostByIdQuery`)
+
 ## [v1.2.1] - 2026-07-12
 ### Added
 
@@ -11,6 +17,7 @@
 ### Changed
 
 - Author flow refactored to CQRS pattern: `IAuthorUseCase` split into `IAuthorCommandHandler` (writes) and `IAuthorQueryHandler` (reads), with separate query DTOs (`GetAllAuthorsQuery`, `GetAuthorByIdQuery`)
+
 
 ## [v1.2.0] - 2026-07-12
 ### Added

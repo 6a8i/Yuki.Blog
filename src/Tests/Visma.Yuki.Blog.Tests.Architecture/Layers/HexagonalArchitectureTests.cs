@@ -39,7 +39,7 @@ public class HexagonalArchitectureTests
     [Fact]
     public void UseCases_ShouldImplementDrivingPorts()
     {
-        var drivingPortInterfaces = new[] { typeof(IAuthorCommandHandler), typeof(IAuthorQueryHandler), typeof(IPostUseCase) };
+        var drivingPortInterfaces = new[] { typeof(IAuthorCommandHandler), typeof(IAuthorQueryHandler), typeof(IPostCommandHandler), typeof(IPostQueryHandler) };
 
         var useCaseTypes = Types.InAssembly(typeof(AuthorCommandHandler).Assembly)
             .That()
@@ -97,7 +97,7 @@ public class HexagonalArchitectureTests
                 .Concat(type.GetFields().Select(f => f.FieldType))
                 .Distinct();
 
-            var concreteUseCaseTypes = new[] { typeof(AuthorCommandHandler), typeof(AuthorQueryHandler), typeof(PostUseCase) };
+            var concreteUseCaseTypes = new[] { typeof(AuthorCommandHandler), typeof(AuthorQueryHandler), typeof(PostCommandHandler), typeof(PostQueryHandler) };
 
             var dependsOnConcreteUseCase = usedTypes
                 .Any(t => concreteUseCaseTypes.Contains(t));
