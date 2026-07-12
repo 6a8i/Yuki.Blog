@@ -27,12 +27,6 @@ public static class DependencyInjectionExtensions
     {
         builder.AddNpgsqlDataSource("yuki-blog-database");
 
-        builder.Services.AddTransient<IDbConnection>(sp =>
-        {
-            var dataSource = sp.GetRequiredService<NpgsqlDataSource>();
-            return dataSource.CreateConnection();
-        });
-
         builder.Services.AddHealthChecks();
 
         return builder;
@@ -47,6 +41,7 @@ public static class DependencyInjectionExtensions
     private static void AddDrivenPorts<TServiceCollection>(TServiceCollection services)
         where TServiceCollection : IServiceCollection
     {
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthorPorts, AuthorRepository>();
     }
 }

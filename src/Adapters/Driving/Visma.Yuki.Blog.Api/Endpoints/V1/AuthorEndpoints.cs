@@ -3,6 +3,7 @@ using FluentResults;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Visma.Yuki.Blog.Api.Endpoints.V1.Responses;
 using Visma.Yuki.Blog.Application.Ports.Driving;
 using Visma.Yuki.Blog.Domain.Entities;
 
@@ -18,17 +19,20 @@ public class AuthorEndpoints : ICarterModule
                               .HasApiVersion(1.0)
                               .WithTags("Authors");
 
-        group.MapGet("/", async ([FromServices] IAuthorUseCase authorUseCase) =>
+        group.MapGet("/", async ([FromServices] IAuthorUseCase authorUseCase, CancellationToken cancellationToken = default) =>
         {
-            Result<IEnumerable<Author>> result = await authorUseCase.GetAuthorsAsync();
+            Result<IEnumerable<Author>> result = await authorUseCase.GetAuthorsAsync(cancellationToken);
             
             if (result.IsFailed)
             {
-                return Results.BadRequest(result.Errors[0].Message); // Usando Results para evitar o outro erro de tipo
+                return Results.BadRequest(result.Errors[0].Message);
             }
 
-            return Results.Ok(result.Value);
-        });
+            if(!result.Value.Any())
+                return Results.NoContent();
+            else
+                return Results.Ok(result.Value.Select(a => new AuthorResponse(a.Id, a.Name, a.Surname)));
+        }).Produces<IEnumerable<AuthorResponse>>();
 
         group.MapPost("/", ([FromServices] IAuthorUseCase authorUseCase) => {
             
