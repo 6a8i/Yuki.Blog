@@ -31,9 +31,6 @@ public class AuthorEndpoints : ICarterModule
                 return Results.BadRequest(result.Errors[0].Message);
             }
 
-            if(!result.Value.Any())
-                return Results.NoContent();
-
             var items = result.Value.Select(a =>
             {
                 var response = (AuthorResponse)a;
@@ -52,7 +49,7 @@ public class AuthorEndpoints : ICarterModule
             };
 
             return Results.Ok(collection);
-        }).Produces<CollectionResponse<AuthorResponse>>();
+        }).Produces<CollectionResponse<AuthorResponse>>().ProducesProblem(400);
 
         group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IAuthorQueryHandler authorQueryHandler, CancellationToken cancellationToken = default) =>
         {
@@ -74,7 +71,7 @@ public class AuthorEndpoints : ICarterModule
             ];
 
             return Results.Ok(response);
-        }).Produces<AuthorResponse>();
+        }).Produces<AuthorResponse>().ProducesProblem(400).ProducesProblem(404);
 
         group.MapPost("/",async ([FromBody] AuthorRequest request,
                                 [FromServices] IAuthorCommandHandler authorCommandHandler,
@@ -95,6 +92,6 @@ public class AuthorEndpoints : ICarterModule
             ];
 
             return Results.Created($"/api/v1/authors/{response.Id}", response);
-        }).Produces<AuthorResponse>();
+        }).Produces<AuthorResponse>(201).ProducesProblem(400);
     }
 }
