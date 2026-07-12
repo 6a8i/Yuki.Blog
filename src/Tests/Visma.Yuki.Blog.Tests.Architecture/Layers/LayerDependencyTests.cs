@@ -9,7 +9,7 @@ namespace Visma.Yuki.Blog.Tests.Architecture.Layers;
 public class LayerDependencyTests
 {
     private static readonly Assembly DomainAssembly = typeof(Author).Assembly;
-    private static readonly Assembly ApplicationAssembly = typeof(AuthorUseCase).Assembly;
+    private static readonly Assembly ApplicationAssembly = typeof(AuthorCommandHandler).Assembly;
     private static readonly Assembly InfrastructureAssembly = typeof(AuthorRepository).Assembly;
     private static readonly Assembly ApiAssembly = typeof(AuthorEndpoints).Assembly;
 
