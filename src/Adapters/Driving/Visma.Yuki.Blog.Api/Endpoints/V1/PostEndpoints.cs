@@ -5,6 +5,7 @@ using Visma.Yuki.Blog.Api.Endpoints.V1.Requests;
 using Visma.Yuki.Blog.Api.Endpoints.V1.Responses;
 using Visma.Yuki.Blog.Application.Commands.Post;
 using Visma.Yuki.Blog.Application.Ports.Driving;
+using Visma.Yuki.Blog.Application.Queries.Post;
 using Visma.Yuki.Blog.Domain.Entities;
 
 namespace Visma.Yuki.Blog.Api.Endpoints.V1;
@@ -20,9 +21,9 @@ public class PostEndpoints : ICarterModule
                               .WithTags("Posts");
 
 
-        group.MapGet("/", async ([FromServices] IPostUseCase postUseCase, [FromQuery] bool includeAuthor = false, CancellationToken cancellationToken = default) =>
+        group.MapGet("/", async ([FromServices] IPostQueryHandler postQueryHandler, [FromQuery] bool includeAuthor = false, CancellationToken cancellationToken = default) =>
         {
-            Result<IEnumerable<Post>> result = await postUseCase.GetAllAsync(includeAuthor, cancellationToken);
+            Result<IEnumerable<Post>> result = await postQueryHandler.HandleAsync(new GetAllPostsQuery(includeAuthor), cancellationToken);
 
             if (result.IsFailed)
                 return Results.BadRequest(result.Errors);
@@ -41,9 +42,9 @@ public class PostEndpoints : ICarterModule
             }));
         }).Produces<IEnumerable<PostResponse>>();
 
-        group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IPostUseCase postUseCase, [FromQuery] bool includeAuthor = false, CancellationToken cancellationToken = default) =>
+        group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IPostQueryHandler postQueryHandler, [FromQuery] bool includeAuthor = false, CancellationToken cancellationToken = default) =>
         {
-            Result<Post?> result = await postUseCase.GetPostAsync(id, includeAuthor, cancellationToken);
+            Result<Post?> result = await postQueryHandler.HandleAsync(new GetPostByIdQuery(id, includeAuthor), cancellationToken);
 
             if (result.IsFailed)
                 return Results.BadRequest(result.Errors);
@@ -55,9 +56,9 @@ public class PostEndpoints : ICarterModule
 
         }).Produces<IEnumerable<PostResponse>>();
 
-        group.MapPost("/", async ([FromBody] PostRequest request, [FromServices] IPostUseCase postUseCase, CancellationToken cancellationToken = default) =>
+        group.MapPost("/", async ([FromBody] PostRequest request, [FromServices] IPostCommandHandler postCommandHandler, CancellationToken cancellationToken = default) =>
         {
-            Result<Guid> result = await postUseCase.CreatePostAsync((CreatePostCommand) request,cancellationToken);
+            Result<Guid> result = await postCommandHandler.HandleAsync((CreatePostCommand) request, cancellationToken);
 
             if (result.IsFailed)
                 return Results.BadRequest(result.Errors);

@@ -42,7 +42,8 @@ public static class DependencyInjectionExtensions
         
         services.AddScoped<IAuthorCommandHandler, AuthorCommandHandler>();
         services.AddScoped<IAuthorQueryHandler, AuthorQueryHandler>();
-        services.AddScoped<IPostUseCase, PostUseCase>();
+        services.AddScoped<IPostCommandHandler, PostCommandHandler>();
+        services.AddScoped<IPostQueryHandler, PostQueryHandler>();
     }
 
     private static void AddDrivenPorts<TServiceCollection>(TServiceCollection services)
