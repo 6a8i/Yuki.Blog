@@ -1,0 +1,282 @@
+# Visma.Yuki.Blog
+
+## About This Repository
+
+This repository is part of the **Visma | Yuki** hiring process — a technical assessment designed to evaluate architectural decision-making, clean code practices, testing discipline, and API design. The project is a **blog REST API** built with **.NET 10**, following **Hexagonal Architecture (Ports and Adapters)** and **Domain-Driven Design (DDD)** principles.
+
+The API provides endpoints for managing blog **authors** and **posts**, with features like automatic author resolution (by ID or by name/surname), duplicate detection via hashed unique identifiers, optional author data inclusion in post queries, and full transaction management with rollback on failure.
+
+---
+
+## Running the Project Locally
+
+### Prerequisites
+
+The following tools must be installed on your machine before running the project:
+
+| Tool | Version | Purpose |
+|---|---|---|
+| .NET SDK | 10.0 | Application framework |
+| .NET Aspire workload | 13.4+ | Local orchestration (PostgreSQL, API, migrations) |
+| Docker | Latest | Required by Aspire to spin up PostgreSQL container |
+
+### Installing Prerequisites
+
+#### Windows
+
+**1. Install Docker Desktop**
+
+Download and install from [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/). Start Docker Desktop and ensure it is running.
+
+**2. Install .NET 10 SDK**
+
+Download and install from [https://dotnet.microsoft.com/download/dotnet/10.0](https://dotnet.microsoft.com/download/dotnet/10.0).
+
+Verify the installation:
+
+```powershell
+dotnet --version
+```
+
+**3. Install the Aspire workload**
+
+```powershell
+dotnet workload install aspire
+```
+
+#### Linux
+
+**1. Install Docker**
+
+```bash
+# Ubuntu / Debian
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Add your user to the docker group (so you don't need sudo)
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+Verify the installation:
+
+```bash
+docker --version
+```
+
+**2. Install .NET 10 SDK**
+
+```bash
+# Ubuntu 24.04 (or adjust for your distro)
+wget https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft.deb
+sudo dpkg -i packages-microsoft.deb
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-10.0
+```
+
+Verify the installation:
+
+```bash
+dotnet --version
+```
+
+**3. Install the Aspire workload**
+
+```bash
+dotnet workload install aspire
+```
+
+### Running the Application
+
+Once all prerequisites are installed, clone the repository and run the project:
+
+```bash
+git clone <repository-url>
+cd visma.yuki.blog/src
+dotnet run --project Orchestration/Visma.Yuki.Blog.Aspire.Orchestration
+```
+
+.NET Aspire will automatically:
+1. Start a **PostgreSQL** container via Docker
+2. Run **database migrations** (SQL scripts via dbup)
+3. Launch the **REST API**
+
+The **Aspire Dashboard** will be available at `http://localhost:18888`, where you can monitor services, logs, and traces.
+
+The **API** will be available at `https://localhost:5001` (or the port shown in the Aspire Dashboard).
+
+The **Scalar API reference** (interactive OpenAPI docs) is available at the root URL: `https://localhost:5001/`
+
+### Running the Tests
+
+The project includes three test suites:
+
+**Unit Tests** (94 tests) — Use cases with mocked dependencies via NSubstitute:
+
+```bash
+dotnet test src/Tests/Visma.Yuki.Blog.Tests.Unit/Visma.Yuki.Blog.Tests.Unit.csproj
+```
+
+**Integration Tests** (69 tests) — API endpoints and repositories with a real PostgreSQL database via Testcontainers (requires Docker):
+
+```bash
+dotnet test src/Tests/Visma.Yuki.Blog.Tests.Integration/Visma.Yuki.Blog.Tests.Integration.csproj
+```
+
+**Architecture Tests** (25 tests) — Enforce hexagonal architecture, DDD principles, and domain purity using NetArchTest:
+
+```bash
+dotnet test src/Tests/Visma.Yuki.Blog.Tests.Architecture/Visma.Yuki.Blog.Tests.Architecture.csproj
+```
+
+**Run all tests at once:**
+
+```bash
+dotnet test src/Visma.Yuki.Blog.sln
+```
+
+---
+
+## Architecture and Technologies
+
+### Hexagonal Architecture (Ports and Adapters)
+
+The application is structured around the **Hexagonal Architecture** pattern, which isolates the business logic (Core) from external infrastructure (Adapters) through **Ports** — interfaces that define communication contracts.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Adapters                             │
+│  ┌────────────────────┐    ┌──────────────────────────────┐ │
+│  │   Driving (API)    │    │    Driven (Infrastructure)   │ │
+│  │  REST Endpoints    │    │  Repositories, UnitOfWork    │ │
+│  └────────┬───────────┘    └────────────┬─────────────────┘ │
+│           │                             │                   │
+│           ▼                             ▼                   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                     Core                             │   │
+│  │  ┌──────────────┐    ┌───────────────────────────┐   │   │
+│  │  │   Domain     │◄── │      Application          │   │   │
+│  │  │  Entities    │    │  Ports, UseCases          │   │   │
+│  │  └──────────────┘    └───────────────────────────┘   │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Request flow:**
+1. A **Driving Adapter** (API endpoint) receives the HTTP request
+2. The endpoint calls a **Driving Port** (interface in the Application layer)
+3. The **Use Case** (Driving Port implementation) executes business logic
+4. The Use Case calls a **Driven Port** (infrastructure interface) when persistence is needed
+5. The **Driven Adapter** (Infrastructure) implements the Driven Port and executes the database operation
+
+### Project Structure
+
+```
+src/
+├── Core/                                       # Pure business logic
+│   ├── Visma.Yuki.Blog.Domain/                 # Domain layer
+│   │   ├── Entities/                           # Domain entities (Author, Post)
+│   │   └── ValueObjects/                       # Value Objects (UniqueNameIdentifier)
+│   │
+│   └── Visma.Yuki.Blog.Application/            # Application layer
+│       ├── Ports/
+│       │   ├── Driving/                        # Inbound interfaces (IAuthorUseCase, IPostUseCase)
+│       │   └── Driven/                         # Outbound interfaces (IAuthorPorts, IPostPorts, IUnitOfWork)
+│       ├── UseCases/                           # Driving Port implementations
+│       └── Commands/                           # Commands and validators
+│
+├── Adapters/                                   # External adapters
+│   ├── Driving/
+│   │   └── Visma.Yuki.Blog.Api/                # REST API
+│   │       ├── Endpoints/V1/                   # Versioned endpoints
+│   │       └── Program.cs                      # Application entry point
+│   │
+│   └── Driven/
+│       └── Visma.Yuki.Blog.Infrastructure/     # Infrastructure
+│           └── Repositories/                   # Driven Port implementations (Dapper + Npgsql)
+│
+├── Orchestration/                              # Orchestration and configuration
+│   ├── Visma.Yuki.Blog.Aspire.Orchestration/   # Aspire AppHost
+│   ├── Visma.Yuki.Blog.Database/               # SQL migrations (dbup)
+│   └── Visma.Yuki.Blog.Shared/                # Shared DI configuration
+│
+├── Tests/
+│   ├── Visma.Yuki.Blog.Tests.Architecture/     # Architecture tests (NetArchTest)
+│   ├── Visma.Yuki.Blog.Tests.Unit/             # Unit tests (xUnit + NSubstitute)
+│   └── Visma.Yuki.Blog.Tests.Integration/      # Integration tests (Testcontainers + PostgreSQL)
+│
+└── Visma.Yuki.Blog.sln
+```
+
+### Technology Stack
+
+| Technology | Version | Purpose |
+|---|---|---|
+| .NET | 10.0 | Application framework |
+| ASP.NET Core | 10.0 | REST API |
+| .NET Aspire | 13.4 | Local orchestration and service defaults |
+| PostgreSQL | — | Relational database |
+| Npgsql | 10.0.3 | PostgreSQL driver for .NET |
+| Dapper | 2.1.79 | Lightweight micro-ORM |
+| Carter | 10.0.0 | Minimal API endpoint modules |
+| Asp.Versioning.Http | 10.0.0 | URL-based API versioning |
+| dbup | 5.0.41 | SQL migration runner |
+| FluentResults | 4.0.0 | Functional error handling (Result pattern) |
+| FluentValidation | 12.1.1 | Command/request validation |
+| Scalar.AspNetCore | 2.16.11 | API documentation UI |
+| xUnit | 2.9.3 | Test framework |
+| NSubstitute | 5.3.0 | Mocking library for unit tests |
+| NetArchTest.Rules | 1.3.2 | Architecture test rules |
+| Testcontainers.PostgreSql | 4.6.0 | Real PostgreSQL for integration tests |
+| coverlet | 6.0.4 | Code coverage |
+| OpenTelemetry | — | Observability (via Aspire) |
+
+---
+
+## Project Details
+
+### Features
+
+The API exposes the following endpoints under `/api/v1/`:
+
+#### Authors
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/authors/` | Create a new author with name and surname. Validates input, detects duplicates via `UniqueNameIdentifier` (a hash of name + surname), and returns `201 Created` |
+| `GET` | `/api/v1/authors/` | Retrieve all registered authors. Returns `200 OK` with the list or `204 No Content` when empty |
+| `GET` | `/api/v1/authors/{id}` | Retrieve a single author by ID. Returns `200 OK` or `404 Not Found` |
+
+#### Posts
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/posts/` | Create a new blog post. Automatically resolves the author by `AuthorId` or by name/surname (creating the author if not found). Validates fields, manages transactions with rollback on failure, and returns `201 Created` |
+| `GET` | `/api/v1/posts/` | Retrieve all blog posts. Supports optional `?includeAuthor=true` query parameter to include author data in the response. Returns `200 OK` or `204 No Content` when empty |
+| `GET` | `/api/v1/posts/{id}` | Retrieve a single blog post by ID. Supports optional `?includeAuthor=true` query parameter. Returns `200 OK` or `404 Not Found` |
+
+### Key Design Decisions
+
+- **Hexagonal Architecture** — Business logic is isolated from infrastructure through Ports, making the Core testable and swappable without touching external concerns
+- **Domain Purity** — The Domain layer has zero external dependencies (no ORM, no database drivers), enforced by automated architecture tests
+- **Result Pattern** — `FluentResults` is used for functional error handling instead of throwing exceptions for expected business failures
+- **Unit of Work** — Transaction management is abstracted through `IUnitOfWork`, ensuring commit/rollback semantics across repositories
+- **UniqueNameIdentifier** — Authors are deduplicated by a hash of their name and surname, preventing duplicate author records
+- **Architecture Tests** — 25 automated tests using `NetArchTest.Rules` enforce layer dependencies, namespace conventions, hexagonal contracts, and domain purity at compile time
+- **Integration Tests with Real Database** — Integration tests use `Testcontainers` to spin up a real PostgreSQL container, ensuring tests validate actual database behavior including constraints, foreign keys, and SQL queries
+
+### CI/CD
+
+The GitHub Actions workflow (`.github/workflows/pr-validation.yml`) runs on every pull request to `master` or `development`:
+
+1. **Build** — Compiles the solution in Release mode
+2. **Tests** — Executes all test suites and publishes results as PR annotations
+3. **Changelog Check** — Verifies that `changelog.md` has been updated with new content under `## [Unreleased]`
