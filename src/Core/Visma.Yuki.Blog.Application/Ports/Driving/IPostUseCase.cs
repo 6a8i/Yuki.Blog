@@ -8,4 +8,5 @@ public interface IPostUseCase
 {
     Task<Result<Guid>> CreatePostAsync(CreatePostCommand command, CancellationToken cancellationToken = default);
     Task<Result<IEnumerable<Post>>> GetAllAsync(bool includeAuthor, CancellationToken cancellationToken);
+    Task<Result<Post?>> GetPostAsync(Guid id, bool includeAuthor, CancellationToken cancellationToken);
 }

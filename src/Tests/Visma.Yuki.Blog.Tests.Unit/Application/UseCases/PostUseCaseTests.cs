@@ -333,4 +333,120 @@ public class PostUseCaseTests
         await _postPorts.Received(1).GetAllAsync(Arg.Any<bool>(), token);
         await _uow.Received(1).CommitAsync(token);
     }
+
+    [Fact]
+    public async Task GetPostAsync_WhenPostExists_ShouldReturnSuccessWithPost()
+    {
+        var postId = Guid.NewGuid();
+        var author = new Author(Guid.NewGuid(), "John", "Doe");
+        var post = new Post(postId, "My Post", "Desc", "Content", author);
+
+        _postPorts.GetPostByIdAsync(postId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns(post);
+
+        var result = await _sut.GetPostAsync(postId, false, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(postId, result.Value!.Id);
+    }
+
+    [Fact]
+    public async Task GetPostAsync_WhenPostDoesNotExist_ShouldReturnSuccessWithNull()
+    {
+        var postId = Guid.NewGuid();
+
+        _postPorts.GetPostByIdAsync(postId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns((Post?)null);
+
+        var result = await _sut.GetPostAsync(postId, false, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value);
+    }
+
+    [Fact]
+    public async Task GetPostAsync_ShouldCallPostPortsGetPostByIdAsync()
+    {
+        var postId = Guid.NewGuid();
+
+        _postPorts.GetPostByIdAsync(postId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns((Post?)null);
+
+        await _sut.GetPostAsync(postId, false, CancellationToken.None);
+
+        await _postPorts.Received(1).GetPostByIdAsync(postId, false, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetPostAsync_WithIncludeAuthorTrue_ShouldPassIncludeAuthorToPorts()
+    {
+        var postId = Guid.NewGuid();
+
+        _postPorts.GetPostByIdAsync(postId, true, Arg.Any<CancellationToken>())
+            .Returns((Post?)null);
+
+        await _sut.GetPostAsync(postId, true, CancellationToken.None);
+
+        await _postPorts.Received(1).GetPostByIdAsync(postId, true, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetPostAsync_WithIncludeAuthorFalse_ShouldPassIncludeAuthorToPorts()
+    {
+        var postId = Guid.NewGuid();
+
+        _postPorts.GetPostByIdAsync(postId, false, Arg.Any<CancellationToken>())
+            .Returns((Post?)null);
+
+        await _sut.GetPostAsync(postId, false, CancellationToken.None);
+
+        await _postPorts.Received(1).GetPostByIdAsync(postId, false, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetPostAsync_WhenPortsThrowsException_ShouldReturnFailure()
+    {
+        var postId = Guid.NewGuid();
+
+        _postPorts.GetPostByIdAsync(postId, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+            .Returns<Post?>(_ => throw new InvalidOperationException("Database error"));
+
+        var result = await _sut.GetPostAsync(postId, false, CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+    }
+
+    [Fact]
+    public async Task GetPostAsync_WithCancellationToken_ShouldPassTokenToPorts()
+    {
+        var postId = Guid.NewGuid();
+        var cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        _postPorts.GetPostByIdAsync(postId, Arg.Any<bool>(), token)
+            .Returns((Post?)null);
+
+        await _sut.GetPostAsync(postId, false, token);
+
+        await _postPorts.Received(1).GetPostByIdAsync(postId, Arg.Any<bool>(), token);
+    }
+
+    [Fact]
+    public async Task GetPostAsync_WhenPostExistsWithAuthor_ShouldReturnPostWithAuthor()
+    {
+        var postId = Guid.NewGuid();
+        var author = new Author(Guid.NewGuid(), "Jane", "Smith");
+        var post = new Post(postId, "Title", "Desc", "Content", author);
+
+        _postPorts.GetPostByIdAsync(postId, true, Arg.Any<CancellationToken>())
+            .Returns(post);
+
+        var result = await _sut.GetPostAsync(postId, true, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.NotNull(result.Value!.Author);
+        Assert.Equal("Jane", result.Value.Author.Name);
+    }
 }
