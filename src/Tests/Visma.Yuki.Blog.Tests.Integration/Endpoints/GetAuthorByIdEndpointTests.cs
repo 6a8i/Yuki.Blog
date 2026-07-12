@@ -68,5 +68,6 @@ public class GetAuthorByIdEndpointTests : IClassFixture<IntegrationTestWebAppFac
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    private record AuthorDto(Guid Id, string FullName);
+    private record AuthorDto(Guid Id, string FullName, List<LinkDto> Links);
+    private record LinkDto(string Rel, string Method, string Href);
 }
