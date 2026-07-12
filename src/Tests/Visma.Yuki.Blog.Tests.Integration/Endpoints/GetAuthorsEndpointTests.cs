@@ -33,7 +33,7 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
     }
 
     [Fact]
-    public async Task GetAuthors_WhenTableIsEmpty_ShouldReturn204NoContent()
+    public async Task GetAuthors_WhenTableIsEmpty_ShouldReturn200WithEmptyCollection()
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
@@ -43,7 +43,11 @@ public class GetAuthorsEndpointTests : IClassFixture<IntegrationTestWebAppFactor
 
         var response = await _client.GetAsync("/api/v1/authors/");
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var collection = await response.Content.ReadFromJsonAsync<AuthorCollectionDto>();
+        Assert.NotNull(collection);
+        Assert.Empty(collection.Items);
+        Assert.NotEmpty(collection.Links);
     }
 
     [Fact]
