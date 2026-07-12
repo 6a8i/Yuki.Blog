@@ -58,7 +58,7 @@ public class AuthorRepository(IUnitOfWork uow) : IAuthorPorts
         var connection = _uow.Connection;
         var transaction = _uow.Transaction;
 
-        var dbResults = await connection.QueryFirstAsync<AuthorEntity>(
+        var dbResults = await connection.QueryFirstOrDefaultAsync<AuthorEntity>(
             sql, 
             param: new {id = id},
             transaction: transaction
