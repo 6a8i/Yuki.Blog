@@ -95,4 +95,18 @@ public class PostUseCase(
             return Result.Fail<IEnumerable<Post>>($"Failed to retrieve posts. => {ex}");
         }
     }
+
+    public async Task<Result<Post?>> GetPostAsync(Guid id, bool includeAuthor, CancellationToken cancellationToken)
+    {
+        try
+        {
+            Post? posts = await _postPorts.GetPostByIdAsync(id, includeAuthor, cancellationToken);
+            
+            return Result.Ok(posts);
+        }
+        catch
+        {
+            return Result.Fail<Post?>($"Failed to retrieve post.");
+        }
+    }
 }

@@ -23,7 +23,7 @@ public class Post
         AuthorId = author.Id;
     }
 
-    public Post(Guid id, string title, string? description, string content, Guid authorId, Author author)
+    public Post(Guid id, string title, string? description, string content, Guid authorId, Author? author)
     {
         Id = id;
         Title = title;

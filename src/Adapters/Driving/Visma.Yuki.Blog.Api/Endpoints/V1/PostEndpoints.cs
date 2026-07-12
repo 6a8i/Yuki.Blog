@@ -41,6 +41,20 @@ public class PostEndpoints : ICarterModule
             }));
         }).Produces<IEnumerable<PostResponse>>();
 
+        group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IPostUseCase postUseCase, [FromQuery] bool includeAuthor = false, CancellationToken cancellationToken = default) =>
+        {
+            Result<Post?> result = await postUseCase.GetPostAsync(id, includeAuthor, cancellationToken);
+
+            if (result.IsFailed)
+                return Results.BadRequest(result.Errors);
+
+            if(result.Value is null)
+                return Results.NotFound();
+
+            return Results.Ok((PostResponse) result.Value);
+
+        }).Produces<IEnumerable<PostResponse>>();
+
         group.MapPost("/", async ([FromBody] PostRequest request, [FromServices] IPostUseCase postUseCase, CancellationToken cancellationToken = default) =>
         {
             Result<Guid> result = await postUseCase.CreatePostAsync((CreatePostCommand) request,cancellationToken);
