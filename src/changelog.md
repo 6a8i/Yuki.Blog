@@ -1,58 +1,32 @@
 # Changelog
 
 ## [Unreleased]
-<!-- Adicione novas features aqui antes de irem para desenvolvimento -->
+<!-- Add new features here before they go to development -->
+### Added
+
+- Authors can now be retrieved via the API (`GET /api/v1/authors/`), returning all registered authors or an empty response when none exist
+- Each author is uniquely identified by a generated hash based on their name and surname, ensuring deduplication
+- Architecture documentation added covering the project's structure, patterns, and tech stack
+- Automated test coverage for the author retrieval flow, including unit and integration tests with a real database
+
+### Changed
+
+- CI pipeline improved with better test result reporting on pull requests
 
 ## [v1.0.0] - 2026-07-11
 ### Added
 
-- **Camada de Domain:**
-  - Entidade `Author` com propriedades Id, Name e Surname
-
-- **Camada de Application:**
-  - Driving Port `IAuthorUseCase` com operações `CreateAuthorAsync` e `GetAuthorsAsync`
-  - Driven Port `IAuthorPort` com operações `AddAsync` e `GetAllAsync`
-  - Driven Port `IUnitOfWork` para gestão de transações (Begin, Commit, Rollback, Dispose)
-  - Use Case `AuthorUseCase` implementando `IAuthorUseCase`
-  - Referência de projeto para Domain
-
-- **Camada de Infrastructure (Driven Adapter):**
-  - `AuthorRepository` implementando `IAuthorPort`
-  - `UnitOfWork` implementando `IUnitOfWork` com `NpgsqlDataSource`
-  - Referências de projeto para Domain e Application
-
-- **Camada de API (Driving Adapter):**
-  - Endpoints REST para Authors (`/api/v1/authors`) com GET e POST via Carter
-  - Configuração de API versioning por URL
-  - Referência de projeto para Application
-
-- **Orchestration:**
-  - `DependencyInjectionExtensions` com registro de Use Cases (Driving Ports) e Driven Ports
-  - Projeto `Visma.Yuki.Blog.Database` com dbup para migrations SQL:
-    - `0001_Author_Table.sql` — Criação da tabela Authors
-    - `0002_Posts_Table.sql` — Criação da tabela Posts
-    - `0003_Indexes.sql` — Índices de performance
-    - `0004_Insert_Fake_Authors.sql` — Dados seed de autores
-    - `0005_Insert_Fake_Posts.sql` — Dados seed de posts
-  - `AppHost` atualizado com orquestração de PostgreSQL, migration e API via Aspire
-
-- **Testes:**
-  - Projeto `Visma.Yuki.Blog.Tests.Architecture` com `NetArchTest.Rules` 1.3.2:
-    - `Design/NamespaceTests.cs` — Valida namespaces corretos e dependências proibidas entre camadas
-    - `Layers/LayerDependencyTests.cs` — Valida referências de assembly entre camadas
-    - `Layers/HexagonalArchitectureTests.cs` — Valida ports, use cases e implementações da arquitetura hexagonal
-    - `Layers/DomainPurityTests.cs` — Valida pureza do Domain (sem pacotes externos, sem ORM, sem adapters)
-  - Projeto `Visma.Yuki.Blog.Tests.Unit` (estrutura pronta)
-  - Projeto `Visma.Yuki.Blog.Tests.Integration` (estrutura pronta)
-  - Projetos adicionados à solution sob a solution folder "Tests"
+- **Author management:** Core entity representing blog authors with name, surname, and unique identifier
+- **Blog post foundation:** Database tables created for authors and posts with performance indexes and seed data
+- **REST API:** Initial API endpoints for creating and listing authors with URL-based versioning
+- **Application orchestration:** Local development environment with PostgreSQL, automatic database migrations, and API orchestration via .NET Aspire
+- **Architecture tests:** Automated validation enforcing hexagonal architecture, DDD principles, and domain purity
 
 ### Changed
 
-- **`Visma.Yuki.Blog.sln`** atualizada com novos projetos de Infrastructure, API, Database, Shared e Tests
-- **`Program.cs` (API)** refactorado para usar Carter, API versioning e service defaults do Aspire
-- **`Extensions.cs` (Shared)** ajustado para compatibilidade com a nova estrutura
-- **`AppHost.cs` (Aspire)** atualizado com orquestração de banco de dados e migrations
+- Solution restructured with separated layers (Domain, Application, Infrastructure, API) and orchestration projects
+- API entry point refactored to use modular endpoint definitions, API versioning, and Aspire service defaults
 
 ### Removed
 
-- Arquivos placeholder `Class1.cs` de Domain e Infrastructure
+- Placeholder files from initial project scaffold
