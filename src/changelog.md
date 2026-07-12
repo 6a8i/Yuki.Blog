@@ -3,6 +3,11 @@
 ## [Unreleased]
 <!-- Add new features here before they go to development -->
 
+## [v1.2.3] - 2026-07-12
+### Added
+
+- HATEOAS links on all Author endpoints: `GET /authors/` (collection with `self` and `create` links), `GET /authors/{id}` (with `self` and `collection` links), and `POST /authors/` (with `self` and `collection` links). Collection responses now wrapped in `CollectionResponse<T>` with `items` and `links` fields.
+
 
 ## [v1.2.2] - 2026-07-12
 ### Changed
