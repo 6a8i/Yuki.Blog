@@ -2,7 +2,7 @@
 
 ## About This Repository
 
-This repository is part of the **Visma | Yuki** hiring process — a technical assessment designed to evaluate architectural decision-making, clean code practices, testing discipline, and API design. The project is a **blog REST API** built with **.NET 10**, following **Hexagonal Architecture (Ports and Adapters)** and **Domain-Driven Design (DDD)** principles.
+This repository is part of the **Visma | Yuki** hiring process — a technical assessment designed to evaluate architectural decision-making, clean code practices, testing discipline, and API design. The project is a **blog RESTFull API** built with **.NET 10**, following **Hexagonal Architecture (Ports and Adapters)** and **Domain-Driven Design (DDD)** principles.
 
 The API provides endpoints for managing blog **authors** and **posts**, with features like automatic author resolution (by ID or by name/surname), duplicate detection via hashed unique identifiers, optional author data inclusion in post queries, and full transaction management with rollback on failure.
 
@@ -94,12 +94,52 @@ dotnet --version
 dotnet workload install aspire
 ```
 
+### Trusting the .NET HTTPS Certificate
+
+The API runs over HTTPS using the .NET developer certificate. You need to trust it once to avoid browser warnings or SSL errors when accessing the API locally.
+
+#### Windows
+
+The certificate is usually trusted automatically on Windows. If you encounter SSL errors, run:
+
+```powershell
+dotnet dev-certs https --trust
+```
+
+#### Linux
+
+On Linux, the certificate must be trusted manually. The steps vary by distribution:
+
+**Ubuntu / Debian (using `update-ca-certificates`):**
+
+```bash
+# Generate and export the certificate to a PEM file
+dotnet dev-certs https -ep ${HOME}/.dotnet/https/aspnetcore.pem --format PEM
+
+# Copy it to the system certificate store and set permissions
+sudo cp ${HOME}/.dotnet/https/aspnetcore.pem /usr/local/share/ca-certificates/aspnetcore.crt
+sudo chmod 644 /usr/local/share/ca-certificates/aspnetcore.crt
+
+# Update the system certificate store
+sudo update-ca-certificates
+```
+
+**Fedora / RHEL (using `update-ca-trust`):**
+
+```bash
+dotnet dev-certs https -ep ${HOME}/.dotnet/https/aspnetcore.pem --format PEM
+sudo cp ${HOME}/.dotnet/https/aspnetcore.pem /etc/pki/ca-trust/source/anchors/aspnetcore.pem
+sudo update-ca-trust
+```
+
+For browsers like Firefox or Chrome on Linux, you may also need to import the certificate manually into the browser's certificate store if the system trust is not picked up automatically.
+
 ### Running the Application
 
 Once all prerequisites are installed, clone the repository and run the project:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/6a8i/Yuki.Blog.git
 cd visma.yuki.blog/src
 dotnet run --project Orchestration/Visma.Yuki.Blog.Aspire.Orchestration
 ```
@@ -109,11 +149,11 @@ dotnet run --project Orchestration/Visma.Yuki.Blog.Aspire.Orchestration
 2. Run **database migrations** (SQL scripts via dbup)
 3. Launch the **REST API**
 
-The **Aspire Dashboard** will be available at `http://localhost:18888`, where you can monitor services, logs, and traces.
+The **Aspire Dashboard** will be available at `https://localhost:17102`, where you can monitor services, logs, and traces.
 
-The **API** will be available at `https://localhost:5001` (or the port shown in the Aspire Dashboard).
+The **API** will be available at `https://localhost:7054/` (or the port shown in the Aspire Dashboard).
 
-The **Scalar API reference** (interactive OpenAPI docs) is available at the root URL: `https://localhost:5001/`
+The **Scalar API reference** (interactive OpenAPI docs) is available at the root URL: `https://localhost:7054/`
 
 ### Running the Tests
 
