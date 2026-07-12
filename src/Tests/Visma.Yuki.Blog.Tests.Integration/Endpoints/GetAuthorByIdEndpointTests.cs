@@ -54,7 +54,7 @@ public class GetAuthorByIdEndpointTests : IClassFixture<IntegrationTestWebAppFac
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "TRUNCATE TABLE authors;";
+        cmd.CommandText = "TRUNCATE TABLE posts, authors CASCADE;";
         await cmd.ExecuteNonQueryAsync();
 
         _authorId = Guid.NewGuid();
