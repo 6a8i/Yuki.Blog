@@ -6,6 +6,7 @@
 
 - Blog posts can now be created via the API (`POST /api/v1/posts/`), with automatic author resolution by ID or name/surname, validation, and `201 Created` response
 - Blog posts can now be retrieved via the API (`GET /api/v1/posts/`), with optional author data inclusion via `includeAuthor` query parameter, returning `200 OK` or `204 No Content` when empty
+- A single blog post can now be retrieved by ID (`GET /api/v1/posts/{id}`), with optional author data inclusion via `includeAuthor` query parameter, returning `200 OK` or `404 Not Found` when not found
 - Automated test coverage for post creation and retrieval flows, including unit and integration tests with a real database
 
 ## [v1.1.0] - 2026-07-12
