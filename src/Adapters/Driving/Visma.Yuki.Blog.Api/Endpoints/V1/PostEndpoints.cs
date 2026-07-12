@@ -22,9 +22,9 @@ public class PostEndpoints : ICarterModule
             Result<Guid> result = await postUseCase.CreatePostAsync((CreatePostCommand) request,cancellationToken);
 
             if (result.IsFailed)
-                Results.BadRequest(result.Errors);
+                return Results.BadRequest(result.Errors);
 
-            Results.Created($"/api/v1/posts/{result.Value}", result.Value);
+            return Results.Created($"/api/v1/posts/{result.Value}", result.Value);
         }).Produces<Guid>();
     }
 }
