@@ -34,6 +34,21 @@ public class AuthorEndpoints : ICarterModule
                 return Results.Ok(result.Value.Select(a => new AuthorResponse(a.Id, a.Name, a.Surname)));
         }).Produces<IEnumerable<AuthorResponse>>();
 
+        group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IAuthorUseCase authorUseCase, CancellationToken cancellationToken = default) =>
+        {
+            Result<Author?> result = await authorUseCase.GetAuthorAsync(id, cancellationToken);
+
+            if (result.IsFailed)
+            {
+                return Results.BadRequest(result.Errors);
+            }
+
+            if (result.Value is null)
+                return Results.NotFound();
+
+            return Results.Ok((AuthorResponse)result.Value);
+        }).Produces<AuthorResponse>();
+
         group.MapPost("/", ([FromServices] IAuthorUseCase authorUseCase) => {
             
             return TypedResults.Json("Author created", statusCode: StatusCodes.Status201Created, contentType: "application/json");
