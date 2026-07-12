@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 <!-- Add new features here before they go to development -->
+### Added
+
+- Blog posts can now be created via the API (`POST /api/v1/posts/`), with automatic author resolution by ID or name/surname, validation, and `201 Created` response
+- Automated test coverage for the post creation flow, including unit and integration tests with a real database
 
 ## [v1.1.0] - 2026-07-12
 ### Added
