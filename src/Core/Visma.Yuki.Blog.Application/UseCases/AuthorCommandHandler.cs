@@ -7,15 +7,15 @@ using Visma.Yuki.Blog.Domain.Entities;
 
 namespace Visma.Yuki.Blog.Application.UseCases;
 
-public class AuthorUseCase(IAuthorPorts authorPorts, 
+public class AuthorCommandHandler(IAuthorPorts authorPorts,
                            IValidator<CreateAuthorCommand> createAuthorValidator,
-                           IUnitOfWork uow) : IAuthorUseCase
+                           IUnitOfWork uow) : IAuthorCommandHandler
 {
     private readonly IAuthorPorts _authorPorts = authorPorts;
     private readonly IValidator<CreateAuthorCommand> _createAuthorValidator = createAuthorValidator;
     private readonly IUnitOfWork _uow = uow;
 
-    public async Task<Result<Author>> CreateAuthorAsync(CreateAuthorCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<Author>> HandleAsync(CreateAuthorCommand command, CancellationToken cancellationToken = default)
     {
         var validationResult = await _createAuthorValidator.ValidateAsync(command);
 
@@ -52,26 +52,5 @@ public class AuthorUseCase(IAuthorPorts authorPorts,
         {
             await _uow.DisposeAsync();
         }
-    }
-
-    public async Task<Result<Author?>> GetAuthorAsync(Guid id, CancellationToken cancellationToken)
-    {
-        try
-        {
-            Author? author = await _authorPorts.GetByIdAsync(id, cancellationToken);
-            
-            return Result.Ok(author);
-        }
-        catch(Exception ex)
-        {
-            return Result.Fail(ex.Message);
-        }
-    }
-
-    public async Task<Result<IEnumerable<Author>>> GetAuthorsAsync(CancellationToken cancellationToken = default)
-    {
-        IEnumerable<Author> authors = await _authorPorts.GetAllAsync(cancellationToken);
-
-        return Result.Ok(authors);
     }
 }

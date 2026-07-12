@@ -22,7 +22,7 @@ public class NamespaceTests
     [Fact]
     public void Application_Types_ShouldBeInApplicationNamespace()
     {
-        var result = Types.InAssembly(typeof(AuthorUseCase).Assembly)
+        var result = Types.InAssembly(typeof(AuthorCommandHandler).Assembly)
             .Should()
             .ResideInNamespace("Visma.Yuki.Blog.Application")
             .GetResult();
@@ -72,7 +72,7 @@ public class NamespaceTests
     [Fact]
     public void Application_ShouldNotDependOnInfrastructureOrApi()
     {
-        var result = Types.InAssembly(typeof(AuthorUseCase).Assembly)
+        var result = Types.InAssembly(typeof(AuthorCommandHandler).Assembly)
             .Should()
             .NotHaveDependencyOnAny("Visma.Yuki.Blog.Infrastructure", "Visma.Yuki.Blog.Api")
             .GetResult();
