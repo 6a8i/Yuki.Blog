@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 <!-- Add new features here before they go to development -->
+
+## [v1.2.0] - 2026-07-12
 ### Added
 
 - Blog posts can now be created via the API (`POST /api/v1/posts/`), with automatic author resolution by ID or name/surname, validation, and `201 Created` response
