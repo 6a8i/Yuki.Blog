@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 
+- Docker Compose support to run the project without .NET Aspire: `docker-compose.yml` (postgres, `database-migrator`, `api` services) plus `Dockerfile`s for the API (`src/Adapters/Driving/Visma.Yuki.Blog.Api/Dockerfile`) and the DbUp migration runner (`src/Orchestration/Visma.Yuki.Blog.Database/Dockerfile`). Dockerfiles use `ubuntu:24.04` as base with .NET SDK installed via `dotnet-install.sh` (avoids dependency on `mcr.microsoft.com` registry). See readme's "Running via Docker Compose" section.
 - Test suite coverage raised to 97% line coverage (from 63.7%): added `UnitOfWorkTests` (integration) covering `Dispose`, `DisposeAsync`, `CommitAsync` rollback-on-failure path and `RollbackAsync`; added `UniqueNameIdentifier` numeric-name validation test; added `PostCommandHandler` defensive-branch test for the "no author identification" guard.
 - `src/coverlet.runsettings` added to exclude auto-generated code (OpenAPI source generator, regex source generator, compiler services helpers) from coverage metrics.
 
