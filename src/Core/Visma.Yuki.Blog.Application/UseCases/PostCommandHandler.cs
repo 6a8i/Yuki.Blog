@@ -19,7 +19,7 @@ public class PostCommandHandler(
     private readonly IAuthorPorts _authorPorts = authorPorts;
     private readonly IPostPorts _postPorts = postPorts;
 
-    public async Task<Result<Guid>> HandleAsync(CreatePostCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<Post>> HandleAsync(CreatePostCommand command, CancellationToken cancellationToken = default)
     {
         var validationResult = await _createPostValidator.ValidateAsync(command, cancellationToken);
 
@@ -28,7 +28,7 @@ public class PostCommandHandler(
             var errors = validationResult.Errors
                 .Select(err => new Error(err.ErrorMessage).WithMetadata("Property", err.PropertyName));
 
-            return Result.Fail<Guid>(errors);
+            return Result.Fail<Post>(errors);
         }
 
         Author? author = null;
@@ -41,7 +41,7 @@ public class PostCommandHandler(
                 author = await _authorPorts.GetByIdAsync(command.AuthorId.Value, cancellationToken);
 
                 if (author is null)
-                    return Result.Fail<Guid>("The Author Identification informed doesn't exists.");
+                    return Result.Fail<Post>("The Author Identification informed doesn't exists.");
             }
             else if (!string.IsNullOrEmpty(command.AuthorName) && !string.IsNullOrEmpty(command.AuthorSurname))
             {
@@ -51,7 +51,7 @@ public class PostCommandHandler(
             }
             else
             {
-                return Result.Fail<Guid>("You must provide either the 'AuthorId' OR both 'AuthorName' and 'AuthorSurname'.");
+                return Result.Fail<Post>("You must provide either the 'AuthorId' OR both 'AuthorName' and 'AuthorSurname'.");
             }
 
             if (author is null)
@@ -67,12 +67,12 @@ public class PostCommandHandler(
 
             await _uow.CommitAsync(cancellationToken);
 
-            return Result.Ok(post.Id);
+            return Result.Ok(post);
         }
         catch
         {
             await _uow.RollbackAsync(cancellationToken);
-            return Result.Fail<Guid>($"An error occurred while saving the author to the database.");
+            return Result.Fail<Post>($"An error occurred while saving the author to the database.");
         }
     }
 }

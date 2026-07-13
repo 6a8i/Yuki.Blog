@@ -31,16 +31,25 @@ public class PostEndpoints : ICarterModule
             if(!result.Value.Any())
                 return Results.NoContent();
 
-            return Results.Ok(result.Value.Select(p => new PostResponse
+            var items = result.Value.Select(p =>
             {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description,
-                Content = p.Content,
-                AuthorId = p.AuthorId,
-                AuthorInfo = p.Author is null ? null : (AuthorResponse)p.Author
-            }));
-        }).Produces<IEnumerable<PostResponse>>();
+                var response = (PostResponse)p;
+                response.Links = [new Link("self", "GET", $"/api/v1/posts/{response.Id}")];
+                return response;
+            }).ToList();
+
+            var collection = new CollectionResponse<PostResponse>
+            {
+                Items = items,
+                Links =
+                [
+                    new Link("self", "GET", "/api/v1/posts/"),
+                    new Link("create", "POST", "/api/v1/posts/")
+                ]
+            };
+
+            return Results.Ok(collection);
+        }).Produces<CollectionResponse<PostResponse>>().ProducesProblem(400);
 
         group.MapGet("/{id}", async ([FromRoute] Guid id, [FromServices] IPostQueryHandler postQueryHandler, [FromQuery] bool includeAuthor = false, CancellationToken cancellationToken = default) =>
         {
@@ -52,18 +61,32 @@ public class PostEndpoints : ICarterModule
             if(result.Value is null)
                 return Results.NotFound();
 
-            return Results.Ok((PostResponse) result.Value);
+            var response = (PostResponse) result.Value;
+            response.Links =
+            [
+                new Link("self", "GET", $"/api/v1/posts/{response.Id}"),
+                new Link("collection", "GET", "/api/v1/posts/")
+            ];
 
-        }).Produces<IEnumerable<PostResponse>>();
+            return Results.Ok(response);
+
+        }).Produces<PostResponse>().ProducesProblem(400).ProducesProblem(404);
 
         group.MapPost("/", async ([FromBody] PostRequest request, [FromServices] IPostCommandHandler postCommandHandler, CancellationToken cancellationToken = default) =>
         {
-            Result<Guid> result = await postCommandHandler.HandleAsync((CreatePostCommand) request, cancellationToken);
+            Result<Post> result = await postCommandHandler.HandleAsync((CreatePostCommand) request, cancellationToken);
 
             if (result.IsFailed)
                 return Results.BadRequest(result.Errors);
 
-            return Results.Created($"/api/v1/posts/{result.Value}", result.Value);
-        }).Produces<Guid>();
+            PostResponse response = (PostResponse) result.Value;
+            response.Links =
+            [
+                new Link("self", "GET", $"/api/v1/posts/{response.Id}"),
+                new Link("collection", "GET", "/api/v1/posts/")
+            ];
+
+            return Results.Created($"/api/v1/posts/{response.Id}", response);
+        }).Produces<PostResponse>(201).ProducesProblem(400);
     }
 }
