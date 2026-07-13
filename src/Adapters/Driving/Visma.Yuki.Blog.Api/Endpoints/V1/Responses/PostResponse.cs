@@ -10,6 +10,7 @@ public class PostResponse
     public string Content { get; set; }
     public Guid AuthorId { get; set; }
     public AuthorResponse? AuthorInfo { get; set; }
+    public List<Link> Links { get; set; } = [];
 
     public static explicit operator PostResponse(Post value)
     {

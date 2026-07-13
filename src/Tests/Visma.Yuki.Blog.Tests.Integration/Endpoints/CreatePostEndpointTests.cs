@@ -29,8 +29,10 @@ public class CreatePostEndpointTests : IClassFixture<IntegrationTestWebAppFactor
         var response = await _client.PostAsJsonAsync("/api/v1/posts/", request);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var postId = await response.Content.ReadFromJsonAsync<Guid>();
-        Assert.NotEqual(Guid.Empty, postId);
+        var post = await response.Content.ReadFromJsonAsync<PostDto>();
+        Assert.NotNull(post);
+        Assert.NotEqual(Guid.Empty, post.Id);
+        Assert.NotEmpty(post.Links);
     }
 
     [Fact]
@@ -121,7 +123,8 @@ public class CreatePostEndpointTests : IClassFixture<IntegrationTestWebAppFactor
         var request = new { Title = "Persisted Post", Description = "Persisted description", Content = "Persisted content", AuthorId = authorId };
 
         var response = await _client.PostAsJsonAsync("/api/v1/posts/", request);
-        var postId = await response.Content.ReadFromJsonAsync<Guid>();
+        var post = await response.Content.ReadFromJsonAsync<PostDto>();
+        var postId = post!.Id;
 
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
@@ -181,4 +184,8 @@ public class CreatePostEndpointTests : IClassFixture<IntegrationTestWebAppFactor
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
+
+    private record PostDto(Guid Id, string Title, string? Description, string Content, Guid AuthorId, AuthorDto? AuthorInfo, List<LinkDto> Links);
+    private record AuthorDto(Guid Id, string FullName);
+    private record LinkDto(string Rel, string Method, string Href);
 }

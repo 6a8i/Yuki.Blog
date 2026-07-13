@@ -102,6 +102,19 @@ public class GetPostByIdEndpointTests : IClassFixture<IntegrationTestWebAppFacto
     }
 
     [Fact]
+    public async Task GetPostById_WhenPostExists_ShouldReturnLinks()
+    {
+        var (authorId, _) = await InsertAuthorAsync("John", "Doe");
+        var postId = await InsertPostAsync("My Post", "Desc", "Content", authorId);
+
+        var response = await _client.GetAsync($"/api/v1/posts/{postId}");
+        var post = await response.Content.ReadFromJsonAsync<PostDto>();
+
+        Assert.NotNull(post);
+        Assert.NotEmpty(post.Links);
+    }
+
+    [Fact]
     public async Task GetPostById_WithInvalidGuid_ShouldReturn400BadRequest()
     {
         var response = await _client.GetAsync("/api/v1/posts/not-a-guid");
@@ -156,6 +169,7 @@ public class GetPostByIdEndpointTests : IClassFixture<IntegrationTestWebAppFacto
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    private record PostDto(Guid Id, string Title, string? Description, string Content, Guid AuthorId, AuthorDto? AuthorInfo);
+    private record PostDto(Guid Id, string Title, string? Description, string Content, Guid AuthorId, AuthorDto? AuthorInfo, List<LinkDto> Links);
     private record AuthorDto(Guid Id, string FullName);
+    private record LinkDto(string Rel, string Method, string Href);
 }

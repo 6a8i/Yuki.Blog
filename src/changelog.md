@@ -1,7 +1,18 @@
 # Changelog
 
 ## [Unreleased]
-<!-- Add new features here before they go to development -->
+
+## [v3.0.1] - 2026-07-12
+### Added
+
+- HATEOAS links on all Post endpoints: `GET /posts/` (collection with `self` and `create` links), `GET /posts/{id}` (with `self` and `collection` links), and `POST /posts/` (with `self` and `collection` links). Collection responses now wrapped in `CollectionResponse<T>` with `items` and `links` fields.
+
+### Changed
+
+- `GET /posts/` now returns `200 OK` with empty collection instead of `204 No Content` when no posts exist
+- `POST /posts/` now returns the created `PostResponse` (with `id`, post fields and HATEOAS links) instead of the raw `Guid`
+- `IPostCommandHandler.HandleAsync` now returns `Result<Post>` instead of `Result<Guid>`
+- Added `ProducesProblem` declarations to Post endpoints for OpenAPI documentation (`400` on all, `404` on `GET /{id}`)
 
 ## [v2.0.1] - 2026-07-12
 ### Added

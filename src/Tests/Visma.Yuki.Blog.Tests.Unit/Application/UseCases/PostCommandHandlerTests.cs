@@ -33,7 +33,7 @@ public class PostCommandHandlerTests
         var result = await _sut.HandleAsync(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.NotEqual(Guid.Empty, result.Value);
+        Assert.NotEqual(Guid.Empty, result.Value.Id);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class PostCommandHandlerTests
         var result = await _sut.HandleAsync(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.NotEqual(Guid.Empty, result.Value);
+        Assert.NotEqual(Guid.Empty, result.Value.Id);
     }
 
     [Fact]
