@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: yuki-blog-postgres
+    environment:
+      POSTGRES_DB: yuki-blog-database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - yuki-blog-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yuki-blog-database"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  database-migrator:
+    build:
+      context: ./src
+      dockerfile: Orchestration/Visma.Yuki.Blog.Database/Dockerfile
+    container_name: yuki-blog-database-migrator
+    environment:
+      ConnectionStrings__yuki-blog-database: "Host=postgres;Port=5432;Database=yuki-blog-database;Username=postgres;Password=postgres"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: ./src
+      dockerfile: Adapters/Driving/Visma.Yuki.Blog.Api/Dockerfile
+    container_name: yuki-blog-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__yuki-blog-database: "Host=postgres;Port=5432;Database=yuki-blog-database;Username=postgres;Password=postgres"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      database-migrator:
+        condition: service_completed_successfully
+
+volumes:
+  yuki-blog-postgres-data:
