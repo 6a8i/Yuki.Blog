@@ -28,9 +28,6 @@ public class PostEndpoints : ICarterModule
             if (result.IsFailed)
                 return Results.BadRequest(result.Errors);
 
-            if(!result.Value.Any())
-                return Results.NoContent();
-
             var items = result.Value.Select(p =>
             {
                 var response = (PostResponse)p;

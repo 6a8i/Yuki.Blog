@@ -36,11 +36,14 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
     }
 
     [Fact]
-    public async Task GetPosts_WhenTableIsEmpty_ShouldReturn204NoContent()
+    public async Task GetPosts_WhenTableIsEmpty_ShouldReturn200OKWithEmptyCollection()
     {
         var response = await _client.GetAsync("/api/v1/posts/");
 
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
+        Assert.NotNull(collection);
+        Assert.Empty(collection.Items);
     }
 
     [Fact]
