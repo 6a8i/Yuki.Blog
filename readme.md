@@ -12,13 +12,21 @@ The API provides endpoints for managing blog **authors** and **posts**, with fea
 
 ### Prerequisites
 
-The following tools must be installed on your machine before running the project:
+You can run the project in two ways — choose one:
+
+#### Option A: .NET Aspire (full local development)
 
 | Tool | Version | Purpose |
 |---|---|---|
 | .NET SDK | 10.0 | Application framework |
 | .NET Aspire workload | 13.4+ | Local orchestration (PostgreSQL, API, migrations) |
 | Docker | Latest | Required by Aspire to spin up PostgreSQL container |
+
+#### Option B: Docker Compose (minimal — no .NET SDK needed)
+
+| Tool | Version | Purpose |
+|---|---|---|
+| Docker | Latest | Builds and runs all services (PostgreSQL, migrations, API) |
 
 ### Installing Prerequisites
 
@@ -134,9 +142,9 @@ sudo update-ca-trust
 
 For browsers like Firefox or Chrome on Linux, you may also need to import the certificate manually into the browser's certificate store if the system trust is not picked up automatically.
 
-### Running the Application
+### Running via .NET Aspire
 
-Once all prerequisites are installed, clone the repository and run the project:
+Once all prerequisites (Option A) are installed, clone the repository and run the project:
 
 ```bash
 git clone https://github.com/6a8i/Yuki.Blog.git
@@ -155,17 +163,63 @@ The **API** will be available at `https://localhost:7054/` (or the port shown in
 
 The **Scalar API reference** (interactive OpenAPI docs) is available at the root URL: `https://localhost:7054/`
 
+### Running via Docker Compose
+
+As an alternative to .NET Aspire, the project can be run directly with Docker Compose — no .NET SDK or Aspire workload required, only Docker (Option B).
+
+```bash
+git clone https://github.com/6a8i/Yuki.Blog.git
+cd visma.yuki.blog
+docker compose up --build
+```
+
+This will:
+1. Start a **PostgreSQL** container (with health check)
+2. Build and run the **database-migrator** image — applies SQL migrations via dbup, waits for PostgreSQL to be healthy, then exits
+3. Build and run the **api** image — waits for the migrations to complete successfully before starting
+
+The **API** will be available at `http://localhost:8080/`, with the **Scalar API reference** (interactive OpenAPI docs) at the root URL.
+
+To stop and remove the containers:
+
+```bash
+docker compose down
+```
+
+To also remove the PostgreSQL data volume:
+
+```bash
+docker compose down -v
+```
+
+To rebuild the images after code changes:
+
+```bash
+docker compose up --build -d
+```
+
+### Accessing the API
+
+Regardless of which method you use, the API exposes the same endpoints. The only difference is the base URL:
+
+| Method | Base URL | Scalar API Reference |
+|---|---|---|
+| .NET Aspire | `https://localhost:7054` | `https://localhost:7054/` |
+| Docker Compose | `http://localhost:8080` | `http://localhost:8080/` |
+
+All endpoints are versioned under `/api/v1/`. See the [Endpoints](#endpoints) section below for the full list.
+
 ### Running the Tests
 
 The project includes three test suites:
 
-**Unit Tests** (94 tests) — Use cases with mocked dependencies via NSubstitute:
+**Unit Tests** (98 tests) — Use cases with mocked dependencies via NSubstitute:
 
 ```bash
 dotnet test src/Tests/Visma.Yuki.Blog.Tests.Unit/Visma.Yuki.Blog.Tests.Unit.csproj
 ```
 
-**Integration Tests** (69 tests) — API endpoints and repositories with a real PostgreSQL database via Testcontainers (requires Docker):
+**Integration Tests** (82 tests) — API endpoints and repositories with a real PostgreSQL database via Testcontainers (requires Docker):
 
 ```bash
 dotnet test src/Tests/Visma.Yuki.Blog.Tests.Integration/Visma.Yuki.Blog.Tests.Integration.csproj
@@ -237,7 +291,8 @@ src/
 │   ├── Driving/
 │   │   └── Visma.Yuki.Blog.Api/                # REST API
 │   │       ├── Endpoints/V1/                   # Versioned endpoints
-│   │       └── Program.cs                      # Application entry point
+│   │       ├── Program.cs                      # Application entry point
+│   │       └── Dockerfile                      # API container image
 │   │
 │   └── Driven/
 │       └── Visma.Yuki.Blog.Infrastructure/     # Infrastructure
@@ -246,6 +301,7 @@ src/
 ├── Orchestration/                              # Orchestration and configuration
 │   ├── Visma.Yuki.Blog.Aspire.Orchestration/   # Aspire AppHost
 │   ├── Visma.Yuki.Blog.Database/               # SQL migrations (dbup)
+│   │   └── Dockerfile                          # Database migrator container image
 │   └── Visma.Yuki.Blog.Shared/                # Shared DI configuration
 │
 ├── Tests/
@@ -254,6 +310,8 @@ src/
 │   └── Visma.Yuki.Blog.Tests.Integration/      # Integration tests (Testcontainers + PostgreSQL)
 │
 └── Visma.Yuki.Blog.sln
+
+docker-compose.yml                              # Runs postgres + database-migrator + api without Aspire
 ```
 
 ### Technology Stack
@@ -283,25 +341,70 @@ src/
 
 ## Project Details
 
-### Features
+### Endpoints
 
-The API exposes the following endpoints under `/api/v1/`:
+The API exposes the following endpoints under `/api/v1/`. All responses include **HATEOAS links** (`self`, `collection`, `create`) for navigation. Collection responses are wrapped in `CollectionResponse<T>` with `items` and `links` fields.
 
 #### Authors
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/v1/authors/` | Create a new author with name and surname. Validates input, detects duplicates via `UniqueNameIdentifier` (a hash of name + surname), and returns `201 Created` |
-| `GET` | `/api/v1/authors/` | Retrieve all registered authors. Returns `200 OK` with the list or `204 No Content` when empty |
-| `GET` | `/api/v1/authors/{id}` | Retrieve a single author by ID. Returns `200 OK` or `404 Not Found` |
+| `POST` | `/api/v1/authors/` | Create a new author with name and surname. Validates input, detects duplicates via `UniqueNameIdentifier` (a hash of name + surname). Returns `201 Created` with the author resource and `self`/`collection` links |
+| `GET` | `/api/v1/authors/` | Retrieve all registered authors. Returns `200 OK` with a `CollectionResponse` (always, even when empty — `items` will be an empty array) |
+| `GET` | `/api/v1/authors/{id}` | Retrieve a single author by ID. Returns `200 OK` with `self`/`collection` links, or `404 Not Found` |
 
 #### Posts
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/v1/posts/` | Create a new blog post. Automatically resolves the author by `AuthorId` or by name/surname (creating the author if not found). Validates fields, manages transactions with rollback on failure, and returns `201 Created` |
-| `GET` | `/api/v1/posts/` | Retrieve all blog posts. Supports optional `?includeAuthor=true` query parameter to include author data in the response. Returns `200 OK` or `204 No Content` when empty |
-| `GET` | `/api/v1/posts/{id}` | Retrieve a single blog post by ID. Supports optional `?includeAuthor=true` query parameter. Returns `200 OK` or `404 Not Found` |
+| `POST` | `/api/v1/posts/` | Create a new blog post. Automatically resolves the author by `AuthorId` or by name/surname (creating the author if not found). Validates fields, manages transactions with rollback on failure. Returns `201 Created` with the post resource and `self`/`collection` links |
+| `GET` | `/api/v1/posts/` | Retrieve all blog posts. Supports optional `?includeAuthor=true` query parameter to include author data. Returns `200 OK` with a `CollectionResponse` (always, even when empty) |
+| `GET` | `/api/v1/posts/{id}` | Retrieve a single blog post by ID. Supports optional `?includeAuthor=true` query parameter. Returns `200 OK` with `self`/`collection` links, or `404 Not Found` |
+
+#### Example Responses
+
+**GET `/api/v1/authors/`** — collection with HATEOAS links:
+
+```json
+{
+  "items": [
+    {
+      "id": "b5a17382-9263-4c61-b8d1-ba204c5ebf69",
+      "fullName": "John Doe",
+      "links": [
+        { "rel": "self", "method": "GET", "href": "/api/v1/authors/b5a17382-9263-4c61-b8d1-ba204c5ebf69" }
+      ]
+    }
+  ],
+  "links": [
+    { "rel": "self", "method": "GET", "href": "/api/v1/authors/" },
+    { "rel": "create", "method": "POST", "href": "/api/v1/authors/" }
+  ]
+}
+```
+
+**POST `/api/v1/posts/`** — request body:
+
+```json
+{
+  "title": "My Blog Post",
+  "description": "A short description",
+  "content": "The full content of the post",
+  "authorId": "b5a17382-9263-4c61-b8d1-ba204c5ebf69"
+}
+```
+
+Alternatively, provide `authorName` and `authorSurname` instead of `authorId` — the API will resolve or create the author automatically:
+
+```json
+{
+  "title": "My Blog Post",
+  "description": "A short description",
+  "content": "The full content of the post",
+  "authorName": "John",
+  "authorSurname": "Doe"
+}
+```
 
 ### Key Design Decisions
 
