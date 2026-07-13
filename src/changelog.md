@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [v3.0.1] - 2026-07-12
 ### Added
 
 - HATEOAS links on all Post endpoints: `GET /posts/` (collection with `self` and `create` links), `GET /posts/{id}` (with `self` and `collection` links), and `POST /posts/` (with `self` and `collection` links). Collection responses now wrapped in `CollectionResponse<T>` with `items` and `links` fields.
