@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Fixed readme information on intriductions.
+
 ## [v3.0.2] - 2026-07-13
 ### Added
 
