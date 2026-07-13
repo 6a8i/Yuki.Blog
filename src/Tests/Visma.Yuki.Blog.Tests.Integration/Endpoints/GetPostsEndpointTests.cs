@@ -29,9 +29,10 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
         var response = await _client.GetAsync("/api/v1/posts/");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var posts = await response.Content.ReadFromJsonAsync<List<PostDto>>();
-        Assert.NotNull(posts);
-        Assert.Equal(2, posts.Count);
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
+        Assert.NotNull(collection);
+        Assert.Equal(2, collection.Items.Count);
+        Assert.NotEmpty(collection.Links);
     }
 
     [Fact]
@@ -54,16 +55,29 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
     }
 
     [Fact]
+    public async Task GetPosts_ShouldReturnLinksOnEachItem()
+    {
+        var (authorId, _) = await InsertAuthorAsync("John", "Doe");
+        await InsertPostAsync("Post 1", "Desc 1", "Content 1", authorId);
+
+        var response = await _client.GetAsync("/api/v1/posts/");
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
+
+        Assert.NotNull(collection);
+        Assert.All(collection.Items, p => Assert.NotEmpty(p.Links));
+    }
+
+    [Fact]
     public async Task GetPosts_WithoutIncludeAuthor_ShouldNotReturnAuthorInfo()
     {
         var (authorId, _) = await InsertAuthorAsync("John", "Doe");
         await InsertPostAsync("Post 1", "Desc 1", "Content 1", authorId);
 
         var response = await _client.GetAsync("/api/v1/posts/");
-        var posts = await response.Content.ReadFromJsonAsync<List<PostDto>>();
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
 
-        Assert.NotNull(posts);
-        Assert.All(posts, p => Assert.Null(p.AuthorInfo));
+        Assert.NotNull(collection);
+        Assert.All(collection.Items, p => Assert.Null(p.AuthorInfo));
     }
 
     [Fact]
@@ -73,12 +87,12 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
         await InsertPostAsync("Post 1", "Desc 1", "Content 1", authorId);
 
         var response = await _client.GetAsync("/api/v1/posts/?includeAuthor=true");
-        var posts = await response.Content.ReadFromJsonAsync<List<PostDto>>();
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
 
-        Assert.NotNull(posts);
-        Assert.NotEmpty(posts);
-        Assert.NotNull(posts[0].AuthorInfo);
-        Assert.Equal("John Doe", posts[0].AuthorInfo.FullName);
+        Assert.NotNull(collection);
+        Assert.NotEmpty(collection.Items);
+        Assert.NotNull(collection.Items[0].AuthorInfo);
+        Assert.Equal("John Doe", collection.Items[0].AuthorInfo.FullName);
     }
 
     [Fact]
@@ -88,10 +102,10 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
         await InsertPostAsync("Post 1", "Desc 1", "Content 1", authorId);
 
         var response = await _client.GetAsync("/api/v1/posts/?includeAuthor=false");
-        var posts = await response.Content.ReadFromJsonAsync<List<PostDto>>();
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
 
-        Assert.NotNull(posts);
-        Assert.All(posts, p => Assert.Null(p.AuthorInfo));
+        Assert.NotNull(collection);
+        Assert.All(collection.Items, p => Assert.Null(p.AuthorInfo));
     }
 
     [Fact]
@@ -101,10 +115,10 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
         await InsertPostAsync("My Title", "My Description", "My Content", authorId);
 
         var response = await _client.GetAsync("/api/v1/posts/");
-        var posts = await response.Content.ReadFromJsonAsync<List<PostDto>>();
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
 
-        Assert.NotNull(posts);
-        var post = posts.Single(p => p.Title == "My Title");
+        Assert.NotNull(collection);
+        var post = collection.Items.Single(p => p.Title == "My Title");
         Assert.Equal("My Description", post.Description);
         Assert.Equal("My Content", post.Content);
         Assert.Equal(authorId, post.AuthorId);
@@ -119,10 +133,10 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
         await InsertPostAsync("Post C", null, "Content C", authorId);
 
         var response = await _client.GetAsync("/api/v1/posts/");
-        var posts = await response.Content.ReadFromJsonAsync<List<PostDto>>();
+        var collection = await response.Content.ReadFromJsonAsync<PostCollectionDto>();
 
-        Assert.NotNull(posts);
-        Assert.True(posts.Count >= 3);
+        Assert.NotNull(collection);
+        Assert.True(collection.Items.Count >= 3);
     }
 
     private async Task<(Guid Id, string Identifier)> InsertAuthorAsync(string name, string surname)
@@ -168,6 +182,8 @@ public class GetPostsEndpointTests : IClassFixture<IntegrationTestWebAppFactory>
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    private record PostDto(Guid Id, string Title, string? Description, string Content, Guid AuthorId, AuthorDto? AuthorInfo);
+    private record PostDto(Guid Id, string Title, string? Description, string Content, Guid AuthorId, AuthorDto? AuthorInfo, List<LinkDto> Links);
     private record AuthorDto(Guid Id, string FullName);
+    private record LinkDto(string Rel, string Method, string Href);
+    private record PostCollectionDto(List<PostDto> Items, List<LinkDto> Links);
 }
