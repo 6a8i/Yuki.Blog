@@ -2,7 +2,7 @@
 
 ## About This Repository
 
-This repository is part of the **Visma | Yuki** hiring process — a technical assessment designed to evaluate architectural decision-making, clean code practices, testing discipline, and API design. The project is a **blog RESTFull API** built with **.NET 10**, following **Hexagonal Architecture (Ports and Adapters)** and **Domain-Driven Design (DDD)** principles.
+This repository is part of the **Ateliware | Visma | Yuki** hiring process — a technical assessment designed to evaluate architectural decision-making, clean code practices, testing discipline, and API design. The project is a **blog RESTFull API** built with **.NET 10**, following **Hexagonal Architecture (Ports and Adapters)** and **Domain-Driven Design (DDD)** principles.
 
 The API provides endpoints for managing blog **authors** and **posts**, with features like automatic author resolution (by ID or by name/surname), duplicate detection via hashed unique identifiers, optional author data inclusion in post queries, and full transaction management with rollback on failure.
 
