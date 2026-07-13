@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+
+## [v3.0.2] - 2026-07-13
 ### Added
 
 - Docker Compose support to run the project without .NET Aspire: `docker-compose.yml` (postgres, `database-migrator`, `api` services) plus `Dockerfile`s for the API (`src/Adapters/Driving/Visma.Yuki.Blog.Api/Dockerfile`) and the DbUp migration runner (`src/Orchestration/Visma.Yuki.Blog.Database/Dockerfile`). Dockerfiles use `ubuntu:24.04` as base with .NET SDK installed via `dotnet-install.sh` (avoids dependency on `mcr.microsoft.com` registry). See readme's "Running via Docker Compose" section.
