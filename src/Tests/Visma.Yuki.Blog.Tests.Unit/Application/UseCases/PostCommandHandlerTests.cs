@@ -215,6 +215,22 @@ public class PostCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WithNoAuthorIdentificationAndValidationBypassed_ShouldReturnFailure()
+    {
+        var passthroughValidator = Substitute.For<IValidator<CreatePostCommand>>();
+        passthroughValidator.ValidateAsync(Arg.Any<CreatePostCommand>(), Arg.Any<CancellationToken>())
+            .Returns(new FluentValidation.Results.ValidationResult());
+
+        var sut = new PostCommandHandler(_uow, passthroughValidator, _authorPorts, _postPorts);
+        var command = new CreatePostCommand("My Post", "Description", "Content", null, null, null);
+
+        var result = await sut.HandleAsync(command, CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains("You must provide either", result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task HandleAsync_WithExistingAuthorByName_ShouldNotCreateNewAuthor()
     {
         var command = new CreatePostCommand("My Post", null, "Content", null, "John", "Doe");

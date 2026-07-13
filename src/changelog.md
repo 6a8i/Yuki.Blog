@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+
+- Test suite coverage raised to 97% line coverage (from 63.7%): added `UnitOfWorkTests` (integration) covering `Dispose`, `DisposeAsync`, `CommitAsync` rollback-on-failure path and `RollbackAsync`; added `UniqueNameIdentifier` numeric-name validation test; added `PostCommandHandler` defensive-branch test for the "no author identification" guard.
+- `src/coverlet.runsettings` added to exclude auto-generated code (OpenAPI source generator, regex source generator, compiler services helpers) from coverage metrics.
 
 ## [v3.0.1] - 2026-07-12
 ### Added
