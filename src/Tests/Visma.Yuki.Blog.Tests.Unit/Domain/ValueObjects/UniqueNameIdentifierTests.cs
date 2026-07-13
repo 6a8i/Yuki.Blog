@@ -105,6 +105,16 @@ public class UniqueNameIdentifierTests
         Assert.Throws<ArgumentException>(() => UniqueNameIdentifier.Create(name, surname));
     }
 
+    [Theory]
+    [InlineData("123", "Doe")]
+    [InlineData("John", "456")]
+    [InlineData("123", "456")]
+    public void Create_WithNumericNameOrSurname_ShouldThrowArgumentException(string name, string surname)
+    {
+        var ex = Assert.Throws<ArgumentException>(() => UniqueNameIdentifier.Create(name, surname));
+        Assert.Contains("cannot consist solely of numbers", ex.Message);
+    }
+
     [Fact]
     public void FromString_WithValidValue_ShouldReturnIdentifierWithThatValue()
     {

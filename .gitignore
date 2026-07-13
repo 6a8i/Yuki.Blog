@@ -7,6 +7,7 @@ obj/
 ## Visual Studio cache and settings
 .vs/
 [Tt]est[Rr]esult*
+coverage/
 *.suo
 *.user
 *.userosscache
